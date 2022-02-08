@@ -12976,8 +12976,6 @@ const ACCEPTABLE_WORD_LIST = [
 ];
 // const WORD_LENGTH = 5;
 const keyboardRoot = document.getElementById('keyboard');
-// const guessForm = document.getElementById("guess_form");
-// const guessInput = document.getElementById("new_guess");
 const guestListRootElement = document.getElementById("guess_list");
 
 const KEYBOARD_LAYOUT = [
@@ -13123,7 +13121,6 @@ const setupNewGame = () => {
 const refresh = () => {
   renderUsedLetters();
   renderGuessList(guesses);
-  // guessInput.focus();
 }
 
 const submitNewGuess = newGuessWord => {
@@ -13156,46 +13153,11 @@ const submitNewGuess = newGuessWord => {
   refresh();
 }
 
-// const onGuessSubmit = e => {
-//   e.preventDefault();
-//   const input = e.target.elements.guess;
-//   const newGuessWord = input.value;
-//   const isValidWord = SECRET_WORD_LIST.includes(newGuessWord.toLowerCase()) || ACCEPTABLE_WORD_LIST.includes(newGuessWord.toLowerCase());
-//   if(!isValidWord){
-//     input.setCustomValidity('Unknown word');
-//     input.reportValidity();
-//   }
-//   else {
-//     newGuessWord.split('').forEach(el => {
-//       usedLetters.add(el.toLowerCase());
-//     })
-//     const guessResult = wordCheck(newGuessWord, secret);
-//     const guessObject = {
-//       charArray: newGuessWord.split(''),
-//       scoreArray: guessResult,
-//       isCorrect: guessResult.every(res => res === 2)
-//     };
-//     guesses[guessCount] = guessObject;
-//     guessCount++;
-//     if(guessObject.isCorrect || guessCount > 5){
-//       e.target.elements.guess.disabled = true;
-//       if(guessObject.isCorrect){
-//         document.body.classList.add('success');
-//       }
-//       else {
-//         document.body.classList.add('failure');
-//       }
-//     }
-//     e.target.reset();
-//     refresh();
-//   }
-// }
 
-// guessForm.addEventListener("submit", onGuessSubmit);
 setupNewGame();
 refresh();
 
-document.addEventListener("guess-input-update", e => {
+const inputUpdateListener = document.addEventListener("guess-input-update", e => {
   const key = e.detail;
   if(key === 'Backspace'){
     if(currentInput.length){
@@ -13219,12 +13181,13 @@ document.addEventListener("guess-input-update", e => {
       console.log('maximum word length reached. can\'t add');
     }
   }
+
   console.log(currentInput)
 })
 
 
 // Handle clicking or touching
-keyboardRoot.addEventListener("click", e => {
+const touchListener = keyboardRoot.addEventListener("click", e => {
   const button = e.target.closest("button");
   if(button){
     const key = button.dataset.char;
@@ -13236,7 +13199,7 @@ keyboardRoot.addEventListener("click", e => {
 })
 
 // Handle typing
-document.addEventListener('keyup', e => {
+const keypressListener = document.addEventListener('keyup', e => {
   if(e.repeat || e.ctrlKey || e.altKey || e.metaKey || e.target.nodeName === 'BUTTON'){
     return;
   }
@@ -13250,6 +13213,10 @@ document.addEventListener('keyup', e => {
     document.dispatchEvent(new CustomEvent("guess-input-update", { detail: e.key.toLowerCase() }))
   }
 })
+
+const gameOver = () => {
+
+}
 
 
 // 134 from skin dc
