@@ -1,0 +1,167 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/**
+ * 1. Change the font styles in all browsers.
+ * 2. Remove the margin in Firefox and Safari.
+ */
+
+ button,
+ input,
+ optgroup,
+ select,
+ textarea {
+   font-family: inherit; /* 1 */
+   font-size: 100%; /* 1 */
+   line-height: 1.15; /* 1 */
+   margin: 0; /* 2 */
+ }
+ 
+ /**
+  * Show the overflow in IE.
+  * 1. Show the overflow in Edge.
+  */
+ 
+ button,
+ input { /* 1 */
+   overflow: visible;
+ }
+ 
+ /**
+  * Remove the inheritance of text transform in Edge, Firefox, and IE.
+  * 1. Remove the inheritance of text transform in Firefox.
+  */
+ 
+ button,
+ select { /* 1 */
+   text-transform: none;
+ }
+ 
+ /**
+  * Correct the inability to style clickable types in iOS and Safari.
+  */
+ 
+ button,
+ [type="button"],
+ [type="reset"],
+ [type="submit"] {
+   -webkit-appearance: button;
+ }
+
+ button {
+  background-color: transparent;
+  border-width: 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+
+ }
+
+body {
+  background: #1a1a1b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+body.success {
+  background: #0d6540e0;
+}
+
+body.failure {
+  background: #a50909c9;
+}
+
+.guessList {
+  margin-top: 20px;
+  font-family: 'Calibri', sans-serif;
+  font-weight: 800;
+  font-size: 2rem;
+}
+
+.guessWord {
+  display: flex;
+}
+
+.guessLetter {
+  margin: .2rem;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  color: #D7DADC;
+}
+
+.guessLetter.none {
+  background: #3a3a3c;
+}
+
+.guessLetter.half {
+  background: #B59F3B;
+  border: .25rem dashed #a28c2e;
+}
+
+.guessLetter.full {
+  background: #538D4E;
+  border: .3rem solid #3e6d3a;
+}
+
+.guessInput {
+  margin: 20px 0;
+  padding: 5px;
+  font-size: 2rem;
+  text-transform: uppercase;
+  text-align: center;
+  border: none;
+  border-bottom: 3px solid white;
+  caret-color: white;
+  color: #D7DADC;
+  background: transparent;
+}
+
+.guessInput:focus, .guessInput:active {
+  outline: none;
+}
+
+.keyboard {
+  padding: 20px 0;
+}
+
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+}
+
+.keyboard-key {
+  margin: .1rem;
+  width: 2.5rem;
+  height: 3rem;
+  border-radius: .2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  color: #D7DADC;
+  background: #818384;
+}
+
+.keyboard-key.used {
+  background: #3a3a3c;
+}
+
+.keyboard-key.half {
+  background: #B59F3B;
+  border: .2rem dashed #a28c2e;
+}
+
+.keyboard-key.correct {
+  background: #538D4E;
+  border: .2rem solid #3e6d3a;
+}
