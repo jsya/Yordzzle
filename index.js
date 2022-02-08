@@ -12974,9 +12974,10 @@ const ACCEPTABLE_WORD_LIST = [
   "zymes",
   "zymic"
 ];
-// const WORD_LENGTH = 5;
+
 const keyboardRoot = document.getElementById('keyboard');
 const guestListRootElement = document.getElementById("guess_list");
+let inputUpdateListener;
 
 const KEYBOARD_LAYOUT = [
   'qwertyuiop',
@@ -12986,46 +12987,21 @@ const KEYBOARD_LAYOUT = [
 
 const usedLetters = new Set();
 const exactMatches = new Set();
-const guesses = [
-  {
-    charArray: [' ', ' ', ' ', ' ', ' '],
-    scoreArray: [0,0,0,0,0],
-    isCorrect: false
-  },
-  {
-    charArray: [' ', ' ', ' ', ' ', ' '],
-    scoreArray: [0,0,0,0,0],
-    isCorrect: false
-  },
-  {
-    charArray: [' ', ' ', ' ', ' ', ' '],
-    scoreArray: [0,0,0,0,0],
-    isCorrect: false
-  },
-  {
-    charArray: [' ', ' ', ' ', ' ', ' '],
-    scoreArray: [0,0,0,0,0],
-    isCorrect: false
-  },
-  {
-    charArray: [' ', ' ', ' ', ' ', ' '],
-    scoreArray: [0,0,0,0,0],
-    isCorrect: false
-  },
-  {
-    charArray: [' ', ' ', ' ', ' ', ' '],
-    scoreArray: [0,0,0,0,0],
-    isCorrect: false
-  },
-];
+
+/**
+ * {
+ *  charArray: ['','','','',''],
+ *  scoreArray: [null, null, null, null, null],
+ *  isCorrect: false
+ * }
+ */
+const guesses = [];
 let secret;
+let isFinished = false;
 let guessCount = 0;
 
-// To be used for cacpturing multiple vectors of user input and for submitting new guesses.
+// To be used for capturing multiple vectors of user input and for submitting new guesses.
 let currentInput = '';
-
-// TODO: Make word length dynamic.
-// const guesses = new Array(6).fill(new Array(5).fill(0));
 
 const wordCheck = (guess, secret) => {
   const guessList = guess.toLowerCase().split('');
@@ -13104,26 +13080,37 @@ const renderUsedLetters = () => {
   `;
 };
 
-const renderGuessResult = guess => `<div class="guessWord">${guess.charArray.map((char, i) => 
-  `<span class="guessLetter ${ guess.scoreArray[i] === 2 ? 'full' : guess.scoreArray[i] === 1 ? 'half' : 'none' }">${char}</span>`).join('')}</div>`;
-
-const renderGuessList = (guessList) => {
-  guestListRootElement.innerHTML = `<div class="guessList">${guessList.map(renderGuessResult).join('')}</div>`;
+const renderGuessListRowInput = (guessInput) => {
+  const rowRootElement = guestListRootElement.querySelector(`div.guessWord[data-index="${guessCount}"]`)
+  const tiles = Array.from(rowRootElement.querySelectorAll('span.guessLetter'));
+  for(let i = 0; i < 5; i++){
+    tiles[i].innerText = guessInput[i] ? guessInput[i] : '';
+  }
 }
 
-const setupNewGame = () => {
-  // Create secret
-  // TODO: Use local storage to ensure no repeats;
-  secret = SECRET_WORD_LIST[Math.floor(Math.random() * SECRET_WORD_LIST.length)];
-  console.debug(secret)
-}
-
-const refresh = () => {
-  renderUsedLetters();
-  renderGuessList(guesses);
+const renderGuessListRowScore = (guess) => {
+  const rowRootElement = guestListRootElement.querySelector(`div.guessWord[data-index="${guessCount}"]`)
+  const tiles = Array.from(rowRootElement.querySelectorAll('span.guessLetter'));
+  for(let i = 0; i < 5; i++){
+    let scoreClass;
+    if(guess.scoreArray[i] === 0){
+      scoreClass = 'none';
+    }
+    else if (guess.scoreArray[i] === 1){
+      scoreClass = 'half';
+    }
+    else {
+      scoreClass = 'full';
+    }
+    tiles[i].classList.add('guessed');
+    tiles[i].classList.add(scoreClass);
+  }
 }
 
 const submitNewGuess = newGuessWord => {
+  if(isFinished){
+    return;
+  }
   const isValidWord = SECRET_WORD_LIST.includes(newGuessWord.toLowerCase()) || ACCEPTABLE_WORD_LIST.includes(newGuessWord.toLowerCase());
   if(!isValidWord){
     console.log('Invalid word')
@@ -13138,9 +13125,12 @@ const submitNewGuess = newGuessWord => {
       scoreArray: guessResult,
       isCorrect: guessResult.every(res => res === 2)
     };
-    guesses[guessCount] = guessObject;
+    guesses.push(guessObject);
+    renderGuessListRowScore(guessObject);
     guessCount++;
+    currentInput = '';
     if(guessObject.isCorrect || guessCount > 5){
+      gameOver();
       // e.target.elements.guess.disabled = true;
       if(guessObject.isCorrect){
         document.body.classList.add('success');
@@ -13153,53 +13143,37 @@ const submitNewGuess = newGuessWord => {
   refresh();
 }
 
-
-setupNewGame();
-refresh();
-
-const inputUpdateListener = document.addEventListener("guess-input-update", e => {
+const guessInputUpdateListener = e =>  {
   const key = e.detail;
-  if(key === 'Backspace'){
-    if(currentInput.length){
-      currentInput = currentInput.slice(0, -1);
-    }
-  }
-  else if(key === 'Enter'){
+  if(key === 'Enter'){
     if(currentInput.length === 5){
       submitNewGuess(currentInput);
-      currentInput = '';
+      // return to avoid hacky way of updating user input live.
+      return;
     }
     else {
-      console.log("word too short to submit")
+      console.log("word too short to submit");
     }
   }
   else {
-    if(currentInput.length < 5){
-      currentInput = currentInput.concat(key);
+    if(key === 'Backspace'){
+      if(currentInput.length){
+        currentInput = currentInput.slice(0, -1);
+      }
     }
     else {
-      console.log('maximum word length reached. can\'t add');
+      if(currentInput.length < 5){
+        currentInput = currentInput.concat(key);
+      }
+      else {
+        currentInput = currentInput.slice(0, -1).concat(key);
+      }
     }
+    renderGuessListRowInput(currentInput);
   }
+}
 
-  console.log(currentInput)
-})
-
-
-// Handle clicking or touching
-const touchListener = keyboardRoot.addEventListener("click", e => {
-  const button = e.target.closest("button");
-  if(button){
-    const key = button.dataset.char;
-    if('abcdefghijklmnopqrstuvwxyz'.includes(key.toLowerCase())){
-      document.dispatchEvent(new CustomEvent("guess-input-update", { detail: key.toLowerCase() }))
-    }
-  }
-  return false;
-})
-
-// Handle typing
-const keypressListener = document.addEventListener('keyup', e => {
+const keypressListener = e => {
   if(e.repeat || e.ctrlKey || e.altKey || e.metaKey || e.target.nodeName === 'BUTTON'){
     return;
   }
@@ -13212,16 +13186,50 @@ const keypressListener = document.addEventListener('keyup', e => {
   if('abcdefghijklmnopqrstuvwxyz'.includes(e.key.toLowerCase())){
     document.dispatchEvent(new CustomEvent("guess-input-update", { detail: e.key.toLowerCase() }))
   }
-})
+}
+
+// TODO: Make static html as well
+const refresh = () => {
+  renderUsedLetters();
+}
+
+const newGame = () => {
+  // Create secret
+  // TODO: Use local storage to ensure no repeats;
+  secret = SECRET_WORD_LIST[Math.floor(Math.random() * SECRET_WORD_LIST.length)];
+  document.addEventListener("guess-input-update", guessInputUpdateListener);
+  document.addEventListener('keyup', keypressListener);
+  refresh();
+  console.debug(secret)
+}
 
 const gameOver = () => {
-
+  isFinished = true;
+  document.removeEventListener("guess-input-update", inputUpdateListener);
+  document.removeEventListener('keyup', keypressListener);
 }
+
+newGame();
+
+
+// TODO (Need to add enter and backspace)
+// Handle clicking or touching
+// const touchListener = keyboardRoot.addEventListener("click", e => {
+//   const button = e.target.closest("button");
+//   if(button){
+//     const key = button.dataset.char;
+//     if('abcdefghijklmnopqrstuvwxyz'.includes(key.toLowerCase())){
+//       document.dispatchEvent(new CustomEvent("guess-input-update", { detail: key.toLowerCase() }))
+//     }
+//   }
+//   return false;
+// })
 
 
 // 134 from skin dc
 
 // TODO:
+// Add butter bar for validation error messages
 // add New Game button
 // Add statistics (favorite words, favorite letters, most common solution letters)
 // Add score statistics (like wordle)
