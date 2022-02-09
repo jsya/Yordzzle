@@ -13350,6 +13350,7 @@ onLoad();
 // ++ Make mobile friendly
 // ++ Host somewhere (github pages)
 // Add butter bar for validation error messages
+// Create seeding and allow sharing by seed (override used list when using seed) with a visual and "Can you beat my score?"
 // Reveal correct word on failure
 // Move all styles to variables.
 // Add restyling options
@@ -13362,3 +13363,4 @@ onLoad();
 // Move statistics into modal
 // Improve victory and defeat animations
 // add pwa support for iphone
+// Link to original
