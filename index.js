@@ -13328,7 +13328,7 @@ const shareChallengeLink = () => {
   else {
     shareObject = {
       title: 'Can you succeed where I failed on Yordle?',
-      text: 'Can you succeed where I failed on Yordle?\n\n' + resultGraphic + '\n' + challengeURL,
+      text: 'Can you succeed where I failed on Yordle?\n\n' + resultGraphic + '\n' + challengeURL + '\n',
       url: challengeURL
     }
   } 
@@ -13408,8 +13408,6 @@ const gameOver = () => {
   challengeButton.disabled = false;
   updateHistoricalGameData(secret);
   updateHistoricalRawUserData(guesses);
-  // document.removeEventListener("guess-input-update", inputUpdateListener);
-  // document.removeEventListener('keyup', keypressListener);
 }
 
 onLoad();
