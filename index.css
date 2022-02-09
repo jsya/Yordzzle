@@ -273,10 +273,9 @@ body[data-gamestate="failure"] {
   }
 }
 
-.keyboard-key[data-key="Enter"], .keyboard-key[data-key="Backspace"] {
-  width: initial;
-  min-width: 2.5rem;
-  padding: 0 1rem;
+.keyboard-key[data-key="←"], .keyboard-key[data-key="↵"] {
+  background: #3a3a3c;
+  border: 2px solid #818384;
 }
 
 .keyboard-key.used {

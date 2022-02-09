@@ -12989,8 +12989,7 @@ let inputUpdateListener;
 const KEYBOARD_LAYOUT = [
   ['q','w','e','r','t','y','u','i','o','p'],
   ['a','s','d','f','g','h','j','k','l'],
-  ['z','x','c','v','b','n','m'],
-  ['Backspace', 'Enter'],
+  ['↵', 'z','x','c','v','b','n','m', '←'],
 ];
 
 
@@ -13349,6 +13348,7 @@ onLoad();
 // ++ Add enter and backspace buttons.
 // ++ Restore touch logic
 // ++ Make mobile friendly
+// ++ Host somewhere (github pages)
 // Add butter bar for validation error messages
 // Reveal correct word on failure
 // Move all styles to variables.
@@ -13360,5 +13360,4 @@ onLoad();
 // - Graph of previous wins
 // ...
 // Move statistics into modal
-// Host somewhere (github pages)
 // Improve victory and defeat animations
