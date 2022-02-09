@@ -13226,7 +13226,7 @@ const touchListener =  e => {
   const button = e.target.closest("button");
   if(button){
     const key = button.dataset.key;
-    if('abcdefghijklmnopqrstuvwxyz'.includes(key) || key === 'Enter' || key === 'Backspace'){
+    if('abcdefghijklmnopqrstuvwxyz↵←'.includes(key)){
       document.dispatchEvent(new CustomEvent("guess-input-update", { detail: key }))
     }
   }
