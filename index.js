@@ -13321,14 +13321,14 @@ const shareChallengeLink = () => {
   if(hasWon === true) {
     shareObject = {
       title: 'Can you beat my score on Yordle?',
-      text: 'Can you beat my score on Yordle?\n\n' + resultGraphic + '\n\n' + url,
+      text: 'Can you beat my score on Yordle?\n\n' + resultGraphic + '\n\n' + challengeURL,
       url: challengeURL
     }
   }
   else {
     shareObject = {
       title: 'Can you succeed where I failed on Yordle?',
-      text: 'Can you succeed where I failed on Yordle?\n\n' + resultGraphic + '\n\n' + url,
+      text: 'Can you succeed where I failed on Yordle?\n\n' + resultGraphic + '\n\n' + challengeURL,
       url: challengeURL
     }
   } 
