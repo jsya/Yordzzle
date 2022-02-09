@@ -13174,7 +13174,7 @@ const submitNewGuess = newGuessWord => {
 
 const guessInputUpdateListener = e =>  {
   const key = e.detail;
-  if(key === 'Enter'){
+  if(key === 'Enter' || key === '↵'){
     if(isFinished){
       // TODO: Broadcast message instead of simulating click;
       newGameButton.click();
@@ -13190,7 +13190,7 @@ const guessInputUpdateListener = e =>  {
     }
   }
   else {
-    if(key === 'Backspace'){
+    if(key === 'Backspace' || key === '←'){
       if(currentInput.length){
         currentInput = currentInput.slice(0, -1);
       }
@@ -13361,3 +13361,4 @@ onLoad();
 // ...
 // Move statistics into modal
 // Improve victory and defeat animations
+// add pwa support for iphone
