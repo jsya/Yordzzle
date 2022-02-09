@@ -13297,7 +13297,7 @@ const generateResultGraphic = (guesses) => {
 
 const generateChallengeText = (secret, guesses) => {
   const seed = encodeSecretForSeeding(secret);
-  const challengeURL = `${window.location.origin}?seed=${seed}`;
+  const challengeURL = `${window.location.href}?seed=${seed}`;
   const resultGraphic = generateResultGraphic(guesses);
   const challengeText = `
     Can you beat my score on Yordle? \n
@@ -13322,7 +13322,7 @@ const shareChallengeLink = () => {
 
   const shareObject = {
     title: 'Can you beat my score on Yordle?',
-    text: resultGraphic,
+    text: 'Can you beat my score on Yordle?\n\n' + resultGraphic,
     url: challengeURL
   }
   navigator.share(shareObject);
