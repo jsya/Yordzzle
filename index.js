@@ -13008,6 +13008,7 @@ let exactMatches;
 let secret;
 let isFinished;
 let guessCount;
+let hasWon = false;
 
 // To be used for capturing multiple vectors of user input and for submitting new guesses.
 let currentInput = '';
@@ -13168,9 +13169,11 @@ const submitNewGuess = newGuessWord => {
       gameOver();
       // e.target.elements.guess.disabled = true;
       if(guessObject.isCorrect){
+        hasWon = true;
         document.body.dataset.gamestate = "success";
       }
       else {
+        hasWon = false;
         document.body.dataset.gamestate = "failure";
       }
     }
@@ -13314,11 +13317,21 @@ const shareChallengeLink = () => {
   const seed = encodeSecretForSeeding(secret);
   const challengeURL = `${window.location.href}?seed=${seed}`;
   const resultGraphic = generateResultGraphic(guesses);
-  const shareObject = {
-    title: 'Can you beat my score on Yordle?',
-    text: 'Can you beat my score on Yordle?\n\n' + resultGraphic + '\n\n' + url,
-    url: challengeURL
+  let shareObject;
+  if(hasWon === true) {
+    shareObject = {
+      title: 'Can you beat my score on Yordle?',
+      text: 'Can you beat my score on Yordle?\n\n' + resultGraphic + '\n\n' + url,
+      url: challengeURL
+    }
   }
+  else {
+    shareObject = {
+      title: 'Can you succeed where I failed on Yordle?',
+      text: 'Can you succeed where I failed on Yordle?\n\n' + resultGraphic + '\n\n' + url,
+      url: challengeURL
+    }
+  } 
   if(navigator.share){
     navigator.share(shareObject);
   }
@@ -13359,6 +13372,7 @@ const newGame = (seed) => {
   usedLetters = new Set();
   exactMatches = new Set();
   isFinished = false;
+  hasWon = false;
   guessCount = 0;
   secret = generateNewSecret(seed);
   // TODO: Load saved preferences for theme
