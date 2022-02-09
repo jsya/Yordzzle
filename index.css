@@ -326,7 +326,13 @@ header button {
   cursor: pointer;
 }
 
-header button {
+header button:disabled {
+  filter: saturate(0);
+  color: grey;
+  cursor:default;
+}
+
+header button:active {
   filter:brightness(.8);
 }
 
