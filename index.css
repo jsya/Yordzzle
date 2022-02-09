@@ -317,7 +317,7 @@ header {
   padding: 10px 25px;
 }
 
-.newGame-button {
+header button {
   background: green;
   color: white;
   padding: .5rem;
@@ -326,7 +326,7 @@ header {
   cursor: pointer;
 }
 
-.newGame-button:active {
+header button {
   filter:brightness(.8);
 }
 

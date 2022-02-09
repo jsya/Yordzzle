@@ -12979,10 +12979,12 @@ const ACCEPTABLE_WORD_LIST = [
 const LS_GAME_DATA_KEY = 'LS_GAME_DATA';
 const LS_RAW_USER_DATA_KEY = 'LS_RAW_USER_DATA';
 const LS_SETTINGS_DATA_KEY = 'LS_SETTINGS_DATA';
+const QUERYSTRING_SEED_KEY = 'seed';
 
 const keyboardRoot = document.getElementById('keyboard');
 const guestListRootElement = document.getElementById("guess_list_root");
 const newGameButton = document.getElementById("new_game_button");
+const challengeButton = document.getElementById("challenge_button");
 const resetButton = document.getElementById('reset_all');
 let inputUpdateListener;
 
@@ -13009,6 +13011,10 @@ let guessCount;
 
 // To be used for capturing multiple vectors of user input and for submitting new guesses.
 let currentInput = '';
+
+// In case we want to change the underlying logic.
+const encodeSecretForSeeding = btoa;
+const decodeSecretForSeeding = atob;
 
 const wordCheck = (guess, secret) => {
   const guessList = guess.toLowerCase().split('');
@@ -13278,8 +13284,56 @@ const updateHistoricalRawUserData = (gameData) => {
   localStorage.setItem(LS_RAW_USER_DATA_KEY, JSON.stringify(existingRawUserData));
 }
 
-const generateNewSecret = () => {
+const generateResultGraphic = (guesses) => {
+  const colors = ['⬛','🟨','🟩'];
+  const graphic = guesses.reduce((acc, curr) => {
+    const row  = curr.scoreArray.map(score => colors[score]).join('');
+    return `${acc}${row}\n`
+  }, '')
+  return graphic;
+}
+
+
+
+const generateChallengeText = (secret, guesses) => {
+  const seed = encodeSecretForSeeding(secret);
+  const challengeURL = `${window.location.origin}?seed=${seed}`;
+  const resultGraphic = generateResultGraphic(guesses);
+  const challengeText = `
+    Can you beat my score on Yordle? \n
+    (I did it in ${guesses.length}) \n
+    \n
+    ${resultGraphic}
+    \n
+    ${challengeURL}
+  `
+  return challengeText;
+}
+
+const shareChallengeLink = () => {
+  const seed = encodeSecretForSeeding(secret);
+  const challengeURL = `${window.location.origin}?seed=${seed}`;
+  const resultGraphic = generateResultGraphic(guesses);
+  const challengeText = `
+    ${resultGraphic}
+    \n
+    ${challengeURL}
+  `
+
+  const shareObject = {
+    title: 'Can you beat my score on Yordle?',
+    text: resultGraphic,
+    url: challengeURL
+  }
+  navigator.share(shareObject);
+
+}
+
+const generateNewSecret = (seed) => {
   let secret;
+  if(seed){
+    return decodeSecretForSeeding(seed);
+  }
   const allPossibleWords = new Set(SECRET_WORD_LIST);
   const usedWords = getHistoricalGameData() || [];
   // If there are still remaining words to choose from, Filter out used words and choose.
@@ -13297,15 +13351,16 @@ const generateNewSecret = () => {
   return secret
 }
 
-const newGame = () => {
+const newGame = (seed) => {
   // TODO: Move all visual gamestate clearing into function?
   document.body.dataset.gamestate = undefined;
+  challengeButton.disabled = true;
   guesses = [];
   usedLetters = new Set();
   exactMatches = new Set();
   isFinished = false;
   guessCount = 0;
-  secret = generateNewSecret();
+  secret = generateNewSecret(seed);
   // TODO: Load saved preferences for theme
   renderGuessListRows();
   renderRecentlySeenWordsList();
@@ -13317,18 +13372,26 @@ const onLoad = ()=> {
   document.addEventListener("guess-input-update", guessInputUpdateListener);
   document.addEventListener('keyup', keypressListener);
   keyboardRoot.addEventListener("click", touchListener);
-  newGameButton.addEventListener('click', () => {
-    newGame();
-  })
+  newGameButton.addEventListener('click', () => newGame())
   resetButton.addEventListener('click', () => localStorage.clear());
-  newGame();
+  challengeButton.addEventListener('click', () => {
+    if(isFinished){
+      shareChallengeLink();
+    }
+  })
+  // We read for a possible seed here instead of in new game.
+  // Saves us having to update the querystring to remove the seed later without
+  // getting stuck playing the same word.
+  // TODO: Remove querystring?
+  const seed = new URLSearchParams(window.location.search).get(QUERYSTRING_SEED_KEY);
+  newGame(seed);
 }
 
 const gameOver = () => {
   isFinished = true;
+  challengeButton.disabled = false;
   updateHistoricalGameData(secret);
   updateHistoricalRawUserData(guesses);
-  console.log(guesses)
   // document.removeEventListener("guess-input-update", inputUpdateListener);
   // document.removeEventListener('keyup', keypressListener);
 }
@@ -13349,6 +13412,7 @@ onLoad();
 // ++ Restore touch logic
 // ++ Make mobile friendly
 // ++ Host somewhere (github pages)
+// Restore focus to window after interacting with button
 // Add butter bar for validation error messages
 // Create seeding and allow sharing by seed (override used list when using seed) with a visual and "Can you beat my score?"
 // Reveal correct word on failure
