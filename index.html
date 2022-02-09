@@ -7,52 +7,18 @@
   <title>Wordle Clone Vanilla</title>
   <link rel="stylesheet" href="/index.css">
 </head>
-<body>
-  <div id="guess_list" class="guessList">
-    <div class="guessWord" data-index="0">
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-    </div>
-    <div class="guessWord" data-index="1">
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-    </div>
-    <div class="guessWord" data-index="2">
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-    </div>
-    <div class="guessWord" data-index="3">
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-    </div>
-    <div class="guessWord" data-index="4">
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-    </div>
-    <div class="guessWord" data-index="5">
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-      <span class="guessLetter"></span>
-    </div>
-  </div>
+<body data-gamestate>
+  <header>
+    <button id="new_game_button" class="newGame-button">New Game</button>
+  </header>
+  <div id="guess_list_root" class="guessList"></div>
   <div id="keyboard" class="keyboard"></div>
+  <br/>
+  <div class="recentWords-container">
+    <h3>Recently Seen Words</h3>
+    <ul id="recent_words_list_root"></ul>
+  </div>
+  <button id="reset_all" class="resetAll-button">Reset All Data</button>
   <script src="/index.js"></script>
 </body>
 </html>

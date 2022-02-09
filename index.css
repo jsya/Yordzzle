@@ -1,3 +1,9 @@
+:root {
+  --primary-background-color: #1a1a1b;
+  --background-color--success: #0d6540e0;
+  --background-color--failure: #a50909c9;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -69,20 +75,20 @@ html {
 
 body {
   width: 100%;
-  background: #1a1a1b;
+  background: var(--primary-background-color);
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-body.success {
-  background: #0d6540e0;
+body[data-gamestate="success"] {
+  background: var(--background-color--success);
   transition: background-color 200ms ease-in;
   transition-delay: 650ms;
 }
 
-body.failure {
-  background: #a50909c9;
+body[data-gamestate="failure"] {
+  background: var(--background-color--failure);
   transition: background-color 200ms ease-in;
   transition-delay: 650ms;
 }
@@ -99,14 +105,21 @@ body.failure {
 
 .guessLetter {
   margin: .2rem;
-  width: 3rem;
-  height: 3rem;
+  width: 15vw;
+  height: 15vw;
   display: flex;
   align-items: center;
   justify-content: center;
   text-transform: uppercase;
   color: #D7DADC;
   border: .1rem solid #3a3a3c;
+}
+
+@media screen and (min-width: 450px){
+  .guessLetter {
+    width: 3rem;
+    height: 3rem;
+  }
 }
 
 .guessLetter.guessed.none {
@@ -241,6 +254,7 @@ body.failure {
 }
 
 .keyboard-key {
+  flex: 1;
   margin: .1rem;
   width: 2.5rem;
   height: 3rem;
@@ -251,6 +265,18 @@ body.failure {
   text-transform: uppercase;
   color: #D7DADC;
   background: #818384;
+}
+
+@media screen and (min-width: 600px){
+  .keyboard-key {
+    flex: none;
+  }
+}
+
+.keyboard-key[data-key="Enter"], .keyboard-key[data-key="Backspace"] {
+  width: initial;
+  min-width: 2.5rem;
+  padding: 0 1rem;
 }
 
 .keyboard-key.used {
@@ -266,4 +292,48 @@ body.failure {
 .keyboard-key.correct {
   background: #538D4E;
   border: .2rem solid #3e6d3a;
+}
+
+/* Header */
+header {
+  display: flex;
+  width: 100%;
+  justify-content: flex-end;
+  padding: 10px 25px;
+}
+
+.newGame-button {
+  background: green;
+  color: white;
+  padding: .5rem;
+  margin: 0 10px;
+  border-radius: .25rem;
+  cursor: pointer;
+}
+
+.newGame-button:active {
+  filter:brightness(.8);
+}
+
+/* Data stuff */
+.resetAll-button {
+  background: red;
+  color: white;
+  padding: 1rem;
+  margin: 10px;
+  border-radius: .25rem;
+  cursor: pointer;
+}
+
+.resetAll-button:active {
+  filter:brightness(.8);
+}
+
+.recentWords-container {
+  color: #818384;
+}
+
+.recentWords-container li {
+  text-transform: uppercase;
+  list-style: none;
 }

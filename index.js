@@ -1,3 +1,4 @@
+// const SECRET_WORD_LIST = ['panel', 'board', 'chips']
 const SECRET_WORD_LIST = [
   "cigar",
   "rebut",
@@ -12975,18 +12976,23 @@ const ACCEPTABLE_WORD_LIST = [
   "zymic"
 ];
 
+const LS_GAME_DATA_KEY = 'LS_GAME_DATA';
+const LS_RAW_USER_DATA_KEY = 'LS_RAW_USER_DATA';
+const LS_SETTINGS_DATA_KEY = 'LS_SETTINGS_DATA';
+
 const keyboardRoot = document.getElementById('keyboard');
-const guestListRootElement = document.getElementById("guess_list");
+const guestListRootElement = document.getElementById("guess_list_root");
+const newGameButton = document.getElementById("new_game_button");
+const resetButton = document.getElementById('reset_all');
 let inputUpdateListener;
 
 const KEYBOARD_LAYOUT = [
-  'qwertyuiop',
-  'asdfghjkl',
-  'zxcvbnm',
+  ['q','w','e','r','t','y','u','i','o','p'],
+  ['a','s','d','f','g','h','j','k','l'],
+  ['z','x','c','v','b','n','m'],
+  ['Backspace', 'Enter'],
 ];
 
-const usedLetters = new Set();
-const exactMatches = new Set();
 
 /**
  * {
@@ -12995,10 +13001,12 @@ const exactMatches = new Set();
  *  isCorrect: false
  * }
  */
-const guesses = [];
+let guesses;
+let usedLetters;
+let exactMatches;
 let secret;
-let isFinished = false;
-let guessCount = 0;
+let isFinished;
+let guessCount;
 
 // To be used for capturing multiple vectors of user input and for submitting new guesses.
 let currentInput = '';
@@ -13070,8 +13078,8 @@ const renderUsedLetters = () => {
       KEYBOARD_LAYOUT.map(row => `
         <div class="keyboard-row">
           ${ 
-            row.split('').map(char => `
-              <button class="keyboard-key ${getKeyColor(char)}" data-char="${char}">${char}</button>
+            row.map(key => `
+              <button class="keyboard-key ${getKeyColor(key)}" data-key="${key}">${key}</button>
             `).join('')
           }
         </div>
@@ -13080,13 +13088,25 @@ const renderUsedLetters = () => {
   `;
 };
 
+const renderGuessListRows = () => {
+  // rather than iterating through and clearing all the updated attributes, if we create it from whole
+  // cloth on each new game we save that effort and still obviate the issue with animations flickering on
+  // each render update (because unlike React, we werent only updating nodes that changed, we were
+  // rerendering the whole subtree)
+  guestListRootElement.innerHTML = new Array(6).fill(null).map((_, i) => `
+  <div class="guessWord" data-index="${i}">${
+    new Array(5).fill(null).map(_ => `<span class="guessLetter"></span>`).join('')
+  }</div>
+`).join('');
+}
+
 const renderGuessListRowInput = (guessInput) => {
   const rowRootElement = guestListRootElement.querySelector(`div.guessWord[data-index="${guessCount}"]`)
   const tiles = Array.from(rowRootElement.querySelectorAll('span.guessLetter'));
   for(let i = 0; i < 5; i++){
     tiles[i].innerText = guessInput[i] ? guessInput[i] : '';
   }
-}
+} 
 
 const renderGuessListRowScore = (guess) => {
   const rowRootElement = guestListRootElement.querySelector(`div.guessWord[data-index="${guessCount}"]`)
@@ -13105,6 +13125,16 @@ const renderGuessListRowScore = (guess) => {
     tiles[i].classList.add('guessed');
     tiles[i].classList.add(scoreClass);
   }
+}
+
+const renderRecentlySeenWordsList = () => {
+  const pastWords = getHistoricalGameData();
+  const recentWordsListRoot = document.getElementById('recent_words_list_root');
+  if(!pastWords || !pastWords.length){
+    recentWordsListRoot.innerHTML = '';
+    return;
+  }
+  recentWordsListRoot.innerHTML = pastWords.slice(0, 10).map((word) => `<li class="recentWord">${word}</li>`).join('');
 }
 
 const submitNewGuess = newGuessWord => {
@@ -13133,10 +13163,10 @@ const submitNewGuess = newGuessWord => {
       gameOver();
       // e.target.elements.guess.disabled = true;
       if(guessObject.isCorrect){
-        document.body.classList.add('success');
+        document.body.dataset.gamestate = "success";
       }
       else {
-        document.body.classList.add('failure');
+        document.body.dataset.gamestate = "failure";
       }
     }
   }
@@ -13146,6 +13176,11 @@ const submitNewGuess = newGuessWord => {
 const guessInputUpdateListener = e =>  {
   const key = e.detail;
   if(key === 'Enter'){
+    if(isFinished){
+      // TODO: Broadcast message instead of simulating click;
+      newGameButton.click();
+      return;
+    }
     if(currentInput.length === 5){
       submitNewGuess(currentInput);
       // return to avoid hacky way of updating user input live.
@@ -13188,55 +13223,142 @@ const keypressListener = e => {
   }
 }
 
+const touchListener =  e => {
+  const button = e.target.closest("button");
+  if(button){
+    const key = button.dataset.key;
+    if('abcdefghijklmnopqrstuvwxyz'.includes(key) || key === 'Enter' || key === 'Backspace'){
+      document.dispatchEvent(new CustomEvent("guess-input-update", { detail: key }))
+    }
+  }
+  return false;
+}
+
 // TODO: Make static html as well
 const refresh = () => {
   renderUsedLetters();
 }
 
+const getHistoricalGameData = () => {
+  const localStorageValue = localStorage.getItem(LS_GAME_DATA_KEY);
+  if(!localStorageValue){
+    return;
+  }
+  // TODO: Should it just be an array of used words? Is there anything else worth persisting between games
+  // for creating the next game state?
+  // For now, no.
+  const usedWords = JSON.parse(localStorageValue);
+  return usedWords;
+}
+
+const updateHistoricalGameData = (usedWord) => {
+  const existingWordList = getHistoricalGameData();
+  const updatedGameData = existingWordList ? [usedWord, ...existingWordList ] : [ usedWord ];
+  localStorage.setItem(LS_GAME_DATA_KEY, JSON.stringify(updatedGameData));
+}
+
+const readHistoricalRawUserData = () => {
+  // We also will want to read settings 
+  const localStorageValue = localStorage.getItem(LS_RAW_USER_DATA_KEY);
+  if(!localStorageValue){
+    return;
+  }
+  const existingUserData = JSON.parse(localStorageValue);
+  return existingUserData;
+}
+
+const updateHistoricalRawUserData = (gameData) => {
+  // NOTE: We won't update user data except on completion of a game.
+  const existingRawUserData = readHistoricalRawUserData() || [];
+  existingRawUserData.push({
+    gameData,
+    secret,
+    won: gameData[gameData.length - 1].isCorrect,
+    timestamp: Date.now()
+  });
+  localStorage.setItem(LS_RAW_USER_DATA_KEY, JSON.stringify(existingRawUserData));
+}
+
+const generateNewSecret = () => {
+  let secret;
+  const allPossibleWords = new Set(SECRET_WORD_LIST);
+  const usedWords = getHistoricalGameData() || [];
+  // If there are still remaining words to choose from, Filter out used words and choose.
+  if(usedWords.length < allPossibleWords.size){
+    usedWords.forEach(word => allPossibleWords.delete(word));
+    const remainingWords = Array.from(allPossibleWords)
+    secret = remainingWords[Math.floor(Math.random() * remainingWords.length)];
+  }
+  // Otherwise, reset the used words in localStorage 
+  // TODO: keep a separate list of the last ten so that that feature doesn't go away? 
+  else {
+    localStorage.removeItem(LS_GAME_DATA_KEY);
+    secret = SECRET_WORD_LIST[Math.floor(Math.random() * SECRET_WORD_LIST.length)];
+  }
+  return secret
+}
+
 const newGame = () => {
-  // Create secret
-  // TODO: Use local storage to ensure no repeats;
-  secret = SECRET_WORD_LIST[Math.floor(Math.random() * SECRET_WORD_LIST.length)];
-  document.addEventListener("guess-input-update", guessInputUpdateListener);
-  document.addEventListener('keyup', keypressListener);
+  // TODO: Move all visual gamestate clearing into function?
+  document.body.dataset.gamestate = undefined;
+  guesses = [];
+  usedLetters = new Set();
+  exactMatches = new Set();
+  isFinished = false;
+  guessCount = 0;
+  secret = generateNewSecret();
+  // TODO: Load saved preferences for theme
+  renderGuessListRows();
+  renderRecentlySeenWordsList();
   refresh();
   console.debug(secret)
 }
 
-const gameOver = () => {
-  isFinished = true;
-  document.removeEventListener("guess-input-update", inputUpdateListener);
-  document.removeEventListener('keyup', keypressListener);
+const onLoad = ()=> {
+  document.addEventListener("guess-input-update", guessInputUpdateListener);
+  document.addEventListener('keyup', keypressListener);
+  keyboardRoot.addEventListener("click", touchListener);
+  newGameButton.addEventListener('click', () => {
+    newGame();
+  })
+  resetButton.addEventListener('click', () => localStorage.clear());
+  newGame();
 }
 
-newGame();
+const gameOver = () => {
+  isFinished = true;
+  updateHistoricalGameData(secret);
+  updateHistoricalRawUserData(guesses);
+  console.log(guesses)
+  // document.removeEventListener("guess-input-update", inputUpdateListener);
+  // document.removeEventListener('keyup', keypressListener);
+}
 
-
-// TODO (Need to add enter and backspace)
-// Handle clicking or touching
-// const touchListener = keyboardRoot.addEventListener("click", e => {
-//   const button = e.target.closest("button");
-//   if(button){
-//     const key = button.dataset.char;
-//     if('abcdefghijklmnopqrstuvwxyz'.includes(key.toLowerCase())){
-//       document.dispatchEvent(new CustomEvent("guess-input-update", { detail: key.toLowerCase() }))
-//     }
-//   }
-//   return false;
-// })
-
+onLoad();
 
 // 134 from skin dc
 
 // TODO:
-// Add butter bar for validation error messages
-// add New Game button
 // Add statistics (favorite words, favorite letters, most common solution letters)
-// Add score statistics (like wordle)
-// Make mobile friendly
-// Allow theming (use css variables)
-// Make sure words don't get reused
-// (Harness localStorage)
-// Create a reset (purge local storage)
-// Allow for other word lengths
 
+// ++ Add local storage for used words
+// ++ Create a reset button (purge local storage)
+// ++ Show last 10 seen words
+// ++ Add new game button
+// ++ Store all game results in local storage
+// ++ Add enter and backspace buttons.
+// ++ Restore touch logic
+// ++ Make mobile friendly
+// Add butter bar for validation error messages
+// Reveal correct word on failure
+// Move all styles to variables.
+// Add restyling options
+// Store style preferences in local storage
+// Create statistics
+// - Favorite first word
+// - Favorite words
+// - Graph of previous wins
+// ...
+// Move statistics into modal
+// Host somewhere (github pages)
+// Improve victory and defeat animations
