@@ -13321,14 +13321,14 @@ const shareChallengeLink = () => {
   if(hasWon === true) {
     shareObject = {
       title: 'Can you beat my score on Yordle?',
-      text: 'Can you beat my score on Yordle?\n\n' + resultGraphic + '\n\n' + challengeURL,
+      text: 'Can you beat my score on Yordle?\n\n' + resultGraphic + '\n' + challengeURL,
       url: challengeURL
     }
   }
   else {
     shareObject = {
       title: 'Can you succeed where I failed on Yordle?',
-      text: 'Can you succeed where I failed on Yordle?\n\n' + resultGraphic + '\n\n' + challengeURL,
+      text: 'Can you succeed where I failed on Yordle?\n\n' + resultGraphic + '\n' + challengeURL,
       url: challengeURL
     }
   } 
@@ -13396,8 +13396,10 @@ const onLoad = ()=> {
   // We read for a possible seed here instead of in new game.
   // Saves us having to update the querystring to remove the seed later without
   // getting stuck playing the same word.
-  // TODO: Remove querystring?
   const seed = new URLSearchParams(window.location.search).get(QUERYSTRING_SEED_KEY);
+  // Decided to remove querystring after all. Gets rid of confusing discrepency in behavior
+  // between refresh and new game button.
+  history.pushState(null, "", window.location.href.split("?")[0]);
   newGame(seed);
 }
 
