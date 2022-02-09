@@ -13312,20 +13312,20 @@ const generateChallengeText = (secret, guesses) => {
 
 const shareChallengeLink = () => {
   const seed = encodeSecretForSeeding(secret);
-  const challengeURL = `${window.location.origin}?seed=${seed}`;
+  const challengeURL = `${window.location.href}?seed=${seed}`;
   const resultGraphic = generateResultGraphic(guesses);
-  const challengeText = `
-    ${resultGraphic}
-    \n
-    ${challengeURL}
-  `
-
   const shareObject = {
     title: 'Can you beat my score on Yordle?',
-    text: 'Can you beat my score on Yordle?\n\n' + resultGraphic,
+    text: 'Can you beat my score on Yordle?\n\n' + resultGraphic + '\n\n' + url,
     url: challengeURL
   }
-  navigator.share(shareObject);
+  if(navigator.share){
+    navigator.share(shareObject);
+  }
+  else {
+    // TODO:
+    // uhhh, all the other stuff. At least a basic link with seed
+  }
 
 }
 
