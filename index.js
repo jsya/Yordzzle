@@ -12980,9 +12980,10 @@ const LS_GAME_DATA_KEY = 'LS_GAME_DATA';
 const LS_RAW_USER_DATA_KEY = 'LS_RAW_USER_DATA';
 const LS_SETTINGS_DATA_KEY = 'LS_SETTINGS_DATA';
 const QUERYSTRING_SEED_KEY = 'seed';
+const QUERYSTRING_CHALLENGER_SCORE_KEY = 'score';
 
 const keyboardRoot = document.getElementById('keyboard');
-const guestListRootElement = document.getElementById("guess_list_root");
+const guessListRootElement = document.getElementById("guess_list_root");
 const newGameButton = document.getElementById("new_game_button");
 const challengeButton = document.getElementById("challenge_button");
 const resetButton = document.getElementById('reset_all');
@@ -13009,6 +13010,7 @@ let secret;
 let isFinished;
 let guessCount;
 let hasWon = false;
+let challengerScore;
 
 // To be used for capturing multiple vectors of user input and for submitting new guesses.
 let currentInput = '';
@@ -13099,7 +13101,7 @@ const renderGuessListRows = () => {
   // cloth on each new game we save that effort and still obviate the issue with animations flickering on
   // each render update (because unlike React, we werent only updating nodes that changed, we were
   // rerendering the whole subtree)
-  guestListRootElement.innerHTML = new Array(6).fill(null).map((_, i) => `
+  guessListRootElement.innerHTML = new Array(6).fill(null).map((_, i) => `
   <div class="guessWord" data-index="${i}">${
     new Array(5).fill(null).map(_ => `<span class="guessLetter"></span>`).join('')
   }</div>
@@ -13107,7 +13109,7 @@ const renderGuessListRows = () => {
 }
 
 const renderGuessListRowInput = (guessInput) => {
-  const rowRootElement = guestListRootElement.querySelector(`div.guessWord[data-index="${guessCount}"]`)
+  const rowRootElement = guessListRootElement.querySelector(`div.guessWord[data-index="${guessCount}"]`)
   const tiles = Array.from(rowRootElement.querySelectorAll('span.guessLetter'));
   for(let i = 0; i < 5; i++){
     tiles[i].innerText = guessInput[i] ? guessInput[i] : '';
@@ -13115,7 +13117,7 @@ const renderGuessListRowInput = (guessInput) => {
 } 
 
 const renderGuessListRowScore = (guess) => {
-  const rowRootElement = guestListRootElement.querySelector(`div.guessWord[data-index="${guessCount}"]`)
+  const rowRootElement = guessListRootElement.querySelector(`div.guessWord[data-index="${guessCount}"]`)
   const tiles = Array.from(rowRootElement.querySelectorAll('span.guessLetter'));
   for(let i = 0; i < 5; i++){
     let scoreClass;
@@ -13287,7 +13289,27 @@ const updateHistoricalRawUserData = (gameData) => {
   localStorage.setItem(LS_RAW_USER_DATA_KEY, JSON.stringify(existingRawUserData));
 }
 
-const generateResultGraphic = (guesses) => {
+const startChallengeMode = (score) => {
+  if(score){
+    // TODO: Do we need the global?
+    challengerScore = score;
+    const wordTiles = Array.from(guessListRootElement.querySelectorAll('.guessLetter'));
+    for(let i = 0; i < score.length; i++){
+      const tileScore = score[i];
+      wordTiles[i].dataset.challenger_score = tileScore;
+    }
+  }
+}
+
+const teardownChallengeMode = () => {
+  if(challengerScore){
+    challengerScore = null;
+    const wordTiles = Array.from(guessListRootElement.querySelectorAll('.guessLetter'));
+    wordTiles.forEach(tile => { tile.dataset.challenger_score = undefined; });
+  }
+}
+
+const generateGraphicalScore = (guesses) => {
   const colors = ['⬛','🟨','🟩'];
   const graphic = guesses.reduce((acc, curr) => {
     const row  = curr.scoreArray.map(score => colors[score]).join('');
@@ -13296,27 +13318,19 @@ const generateResultGraphic = (guesses) => {
   return graphic;
 }
 
-
-
-const generateChallengeText = (secret, guesses) => {
-  const seed = encodeSecretForSeeding(secret);
-  const challengeURL = `${window.location.href}?seed=${seed}`;
-  const resultGraphic = generateResultGraphic(guesses);
-  const challengeText = `
-    Can you beat my score on Yordle? \n
-    (I did it in ${guesses.length}) \n
-    \n
-    ${resultGraphic}
-    \n
-    ${challengeURL}
-  `
-  return challengeText;
+const generateScoreString = (guesses) => {
+  return guesses.reduce((acc, curr) => {
+    const row  = curr.scoreArray.map(score => score).join('');
+    return `${acc}${row}`
+  }, '')
 }
+
 
 const shareChallengeLink = () => {
   const seed = encodeSecretForSeeding(secret);
-  const challengeURL = `${window.location.href}?seed=${seed}`;
-  const resultGraphic = generateResultGraphic(guesses);
+  const scoreCard = generateScoreString(guesses);
+  const challengeURL = `${window.location.origin}/${window.location.pathname}?seed=${seed}&score=${scoreCard}`;
+  const resultGraphic = generateGraphicalScore(guesses);
   let shareObject;
   if(hasWon === true) {
     shareObject = {
@@ -13364,7 +13378,7 @@ const generateNewSecret = (seed) => {
   return secret
 }
 
-const newGame = (seed) => {
+const newGame = (seed, challengerScore) => {
   // TODO: Move all visual gamestate clearing into function?
   document.body.dataset.gamestate = undefined;
   challengeButton.disabled = true;
@@ -13377,6 +13391,8 @@ const newGame = (seed) => {
   secret = generateNewSecret(seed);
   // TODO: Load saved preferences for theme
   renderGuessListRows();
+  teardownChallengeMode();
+  startChallengeMode(challengerScore);
   renderRecentlySeenWordsList();
   refresh();
   console.debug(secret)
@@ -13396,11 +13412,13 @@ const onLoad = ()=> {
   // We read for a possible seed here instead of in new game.
   // Saves us having to update the querystring to remove the seed later without
   // getting stuck playing the same word.
-  const seed = new URLSearchParams(window.location.search).get(QUERYSTRING_SEED_KEY);
+  const searchParams = new URLSearchParams(window.location.search);
+  const seed = searchParams.get(QUERYSTRING_SEED_KEY);
+  challengerScore = searchParams.get(QUERYSTRING_CHALLENGER_SCORE_KEY);
   // Decided to remove querystring after all. Gets rid of confusing discrepency in behavior
   // between refresh and new game button.
   history.pushState(null, "", window.location.href.split("?")[0]);
-  newGame(seed);
+  newGame(seed, challengerScore);
 }
 
 const gameOver = () => {
@@ -13426,9 +13444,12 @@ onLoad();
 // ++ Restore touch logic
 // ++ Make mobile friendly
 // ++ Host somewhere (github pages)
+// ++ Create seeding and allow sharing by seed (override used list when using seed) with a visual and "Can you beat my score?"
+// Allow setting name for sharing
+// BUG concatenating whole url again
+// Show challenger score
 // Restore focus to window after interacting with button
 // Add butter bar for validation error messages
-// Create seeding and allow sharing by seed (override used list when using seed) with a visual and "Can you beat my score?"
 // Reveal correct word on failure
 // Move all styles to variables.
 // Add restyling options
