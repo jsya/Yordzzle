@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-modal>
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,6 +9,7 @@
 </head>
 <body data-gamestate>
   <header>
+    <button id="gloat_button" class="gloat-button">Gloat</button>
     <button id="new_game_button" class="newGame-button">New Game</button>
     <button id="challenge_button" class="challenge-button">Challenge</button>
   </header>
@@ -22,6 +23,13 @@
     </div>
     <button id="reset_all" class="resetAll-button">Reset All Data</button>
   </main>
+  <div id="modal" class="modal-container">
+    <div class="modal-inner-container">
+      <button id="modal_close_button" class="modal-close">X</button>
+      <div id="gloat_container" class="gloat-container"></div>
+      <div id="stats_container" class="stats-container">Stats</div>
+    </div>
+  </div>
   <script src="./wordlist.js"></script>
   <script src="./index.js"></script>
 </body>

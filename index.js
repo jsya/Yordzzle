@@ -332,6 +332,18 @@ const teardownChallengeMode = () => {
   }
 }
 
+//TODO: Definitely getting unDRY here. But want to implement before cleaning up.
+// TODO: Maybe allow for either \n or <br/>
+const generateGraphicFromScoreString = scoreString => {
+  const colors = ['⬛','🟨','🟩'];
+  const transformedArray = scoreString.split('').map(str => colors[parseInt(str)]);
+  let chunkedArray = [];
+  for(let i = 0; i < transformedArray.length; i+= 5){
+    chunkedArray = [ ...chunkedArray, ...transformedArray.slice(i, i + 5), '<br/>']
+  }
+  return chunkedArray.join("");
+}
+
 const generateGraphicalScore = (guesses) => {
   const colors = ['⬛','🟨','🟩'];
   const graphic = guesses.reduce((acc, curr) => {
@@ -347,7 +359,6 @@ const generateScoreString = (guesses) => {
     return `${acc}${row}`
   }, '')
 }
-
 
 const shareChallengeLink = () => {
   const seed = encodeSecretForSeeding(secret);
@@ -377,6 +388,72 @@ const shareChallengeLink = () => {
     // uhhh, all the other stuff. At least a basic link with seed
   }
 
+}
+
+const renderGloatScreen = () => {
+  const myScore = generateScoreString(guesses);
+  // TODO: this should only happen when state isFinished and !!challengerScore
+  const challengerTries = challengerScore.length / 5;
+  const myTries = myScore.length / 5;
+  const challengerFoundWord = challengerScore.slice(-5) === '22222';
+  const IFoundWord = myScore.slice(-5) === '22222';
+  let result;
+  if(challengerFoundWord && IFoundWord){
+    if(challengerTries < myTries){
+      result = 'failure';
+    }
+    else if(myTries < challengerTries){
+      result = 'success';
+    }
+    else {
+      result = 'draw';
+    }
+  }
+  else if(challengerFoundWord){
+    result = 'failure';
+  }
+  else if(IFoundWord){
+    result = 'success';
+  }
+  else {
+    result = 'draw';
+  }
+  // TODO: Add little images of people, happy, sad, bored.
+  const gloatContainer = document.getElementById('gloat_container');
+  gloatContainer.dataset.result = result;
+  const innerHTML = `
+    <h1>${ 
+      result === 'success'
+        ? 'I Win!'
+        : result === 'draw'
+          ? 'We Tied'
+          : 'I Lose!'
+     }</h1>
+    <div class="gloat-result-container ${ result }">
+      <div class="gloat-result-text">
+        <h2>Challenger</h2>
+        <div class="gloat-result-graphic">${ result === 'failure' ? `🏆` : ''}</div>
+      </div>
+      <div class="gloat-score-graphic">
+        <p>
+        ${ generateGraphicFromScoreString(challengerScore) }
+        </p>
+      </div>
+    </div>
+    <div class="gloat-result-container">
+      <div class="gloat-result-text">
+        <h2>Me</h2>
+        <div class="gloat-result-graphic">${ result === 'success' ? '🏆' : ''}</div>
+      </div>
+      <div class="gloat-score-graphic">
+        <p>
+        ${ generateGraphicFromScoreString(myScore) }
+        </p>
+      </div>
+    </div>
+    <button id="gloat-share-button">Share Challenge Results</button>
+  `
+  gloatContainer.innerHTML = innerHTML;
 }
 
 const generateNewSecret = (seed) => {
@@ -433,9 +510,13 @@ const onLoad = ()=> {
     }
   })
   gloatButton.addEventListener('click', () => {
+    if(!isFinished || !challengerScore){
+      return;
+    }
     // TODO: Reuse challenge button for gloating when in challengeMode
     document.documentElement.dataset.modal = true;
     modal.dataset.type = "gloat";
+    renderGloatScreen();
   })
   modalCloseButton.addEventListener('click', () => {
     document.documentElement.dataset.modal = false;
