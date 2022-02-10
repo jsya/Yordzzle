@@ -314,7 +314,6 @@ const updateHistoricalRawUserData = (gameData) => {
 
 const startChallengeMode = (score) => {
   if(score){
-    // TODO: Do we need the global?
     challengerScore = score;
     const wordTiles = Array.from(guessListRootElement.querySelectorAll('.guessLetter'));
     for(let i = 0; i < score.length; i++){
@@ -392,7 +391,6 @@ const shareChallengeLink = () => {
 
 const renderGloatScreen = () => {
   const myScore = generateScoreString(guesses);
-  // TODO: this should only happen when state isFinished and !!challengerScore
   const challengerTries = challengerScore.length / 5;
   const myTries = myScore.length / 5;
   const challengerFoundWord = challengerScore.slice(-5) === '22222';
@@ -481,7 +479,10 @@ const generateNewSecret = (seed) => {
 const newGame = (seed, challengerScore) => {
   // TODO: Move all visual gamestate clearing into function?
   document.body.dataset.gamestate = undefined;
-  challengeButton.disabled = true;
+  challengeButton.style.display = 'none';
+  gloatButton.style.display = 'none';
+  keyboardRoot.style.display = 'block';
+  // challengeButton.disabled = true;
   guesses = [];
   usedLetters = new Set();
   exactMatches = new Set();
@@ -535,7 +536,12 @@ const onLoad = ()=> {
 
 const gameOver = () => {
   isFinished = true;
-  challengeButton.disabled = false;
+  keyboardRoot.style.display = 'none';
+  // challengeButton.disabled = false;
+  challengeButton.style.display = 'block';
+  if(challengerScore){
+    gloatButton.style.display = 'block';
+  }
   updateHistoricalGameData(secret);
   updateHistoricalRawUserData(guesses);
 }
