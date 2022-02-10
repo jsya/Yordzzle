@@ -481,7 +481,7 @@ const newGame = (seed, challengerScore) => {
   document.body.dataset.gamestate = undefined;
   challengeButton.style.display = 'none';
   gloatButton.style.display = 'none';
-  keyboardRoot.style.display = 'block';
+  keyboardRoot.style.display = 'flex';
   // challengeButton.disabled = true;
   guesses = [];
   usedLetters = new Set();
