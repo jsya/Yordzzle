@@ -462,7 +462,7 @@ button.modal-close {
   flex-direction: column;
 }
 
-.gloat-result-graphic {
+.gloat-result-trophy {
   flex: 1 1;
   font-size: 20vw;
   display: flex;
@@ -493,7 +493,7 @@ button.modal-close {
     justify-content: space-around;
   }
 
-  .gloat-result-graphic {
+  .gloat-result-trophy {
     font-size: 5rem;
   }
 

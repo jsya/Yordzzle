@@ -1,3 +1,4 @@
+const VERSION = 0.1;
 const KEYBOARD_LAYOUT = [
   ['q','w','e','r','t','y','u','i','o','p'],
   ['a','s','d','f','g','h','j','k','l'],
@@ -8,7 +9,7 @@ const LS_GAME_DATA_KEY = 'LS_GAME_DATA';
 const LS_RAW_USER_DATA_KEY = 'LS_RAW_USER_DATA';
 const LS_SETTINGS_DATA_KEY = 'LS_SETTINGS_DATA';
 const QUERYSTRING_SEED_KEY = 'seed';
-const QUERYSTRING_CHALLENGER_SCORE_KEY = 'score';
+const QUERYSTRING_CHALLENGE_KEY = 'challenge';
 
 const keyboardRoot = document.getElementById('keyboard');
 const guessListRootElement = document.getElementById("guess_list_root");
@@ -19,6 +20,8 @@ const modalContainer = document.getElementById('modal');
 const modalCloseButton = document.getElementById('modal_close_button');
 const gloatButton = document.getElementById('gloat_button');
 
+let rawChallengeData;
+let processedChallengeData;
 /**
  * {
  *  charArray: ['','','','',''],
@@ -30,17 +33,22 @@ let guesses;
 let usedLetters;
 let exactMatches;
 let secret;
-let isFinished;
-let guessCount;
+let guessCount = 0;
+let isFinished = false;
 let hasWon = false;
+let challengerCharArray;
 let challengerScore;
 
 // To be used for capturing multiple vectors of user input and for submitting new guesses.
 let currentInput = '';
 
+/**
+ * UTILITIES
+ */
+
 // In case we want to change the underlying logic.
-const encodeSecretForSeeding = btoa;
-const decodeSecretForSeeding = atob;
+const encodeString = btoa;
+const decodeString = atob;
 
 const wordCheck = (guess, secret) => {
   const guessList = guess.toLowerCase().split('');
@@ -60,8 +68,6 @@ const wordCheck = (guess, secret) => {
     const compChar = secretList[i];
     if(guessChar === compChar){
       result[i] = 2;
-      // To be used later for rendering keyboard keys correctly.
-      exactMatches.add(guessChar);
       secretList[i] = null;
     }
   }
@@ -85,6 +91,68 @@ const wordCheck = (guess, secret) => {
   }
 
   return result;
+}
+
+// TODO: Handle versioning
+const processRawChallengerData = (encryptedParam) => {
+  /**
+ *  Raw:
+ *  (Will be a stringified json that is then encrypted and a querystring param value)
+ * {
+ *  n: 'Brendan' // Name,
+ *  s: 'manic', // Secret
+ *  c: 'peonypanicmanic', // Results 
+ *  v: '1' // Api version
+ * }
+ * Additional Processing:
+ * {
+ *  charArray: ['p', 'e', 'o', 'n', 'y', 'p', 'a', 'n', 'i', 'c', 'm', 'a', 'n', 'i', 'c'],
+ *  scoreArray: [0,0,2,0,0,1,1,0,1,1,2,2,2,2,2]' // ScoreArray
+ * }
+ */
+  // Decrypt, parse, then process
+  const decryptedRawData = decodeString(encryptedParam);
+  console.log(decryptedRawData)
+  if(!decryptedRawData){
+    // To avoid JSON.parse throwing on null.
+    return;
+  }
+  const parsedRawData = JSON.parse(decryptedRawData);
+  let processedData = {}
+  processedData.name = parsedRawData.n || 'Challenger';
+  processedData.secret = parsedRawData.s;
+  // TODO: Flat or 1 deep array?
+  processedData.charArray = parsedRawData.c.split('');
+  // TODO: Looping through flat letters array to pass full words to wordCheck is happening all over and
+  // should be consolidated or obviated. This is the last time I will write this again, expect to refactor soon.
+  // NOTE: If anything in life is true, the above statement will be ignored for way too long.
+  processedData.scoreArray = [];
+  for(let i = 0; i < processedData.charArray.length; i += 5){
+    const guess = processedData.charArray.slice(i, i + 5).join(''); // NOTE: wordCheck expects words, not arrays
+    processedData.scoreArray = [ ...processedData.scoreArray, ...wordCheck(guess, processedData.secret)]
+  }
+  // SHIT!! NEED to update wordcheck to avoid conflicting with exactMatches set so that challenger data doesn't
+  // corrupt keyboard
+  console.debug({ processedData });
+  return processedData;
+}
+
+const generateChallengerDataString = () => {
+  // TODO: Would be nice to stop having all this stuff use global state values. Or at least keep them in a
+  // store that I could dump straight into a JSON.
+  const rawData = {
+    // TODO: Institute names :)
+    v: VERSION,
+    n: 'Brendan',
+    s: secret,
+    // TODO: Ok, I said last time would be the last time I write chunking and unchunking logic again. Clearly, the
+    // underlying data needs to be restructured. But, ugh, its late and the great british baking show is hitting
+    // the semi-finals and need brain use to power the heavy eye-rolls needed for host jokes during time updates.
+    c: guesses.map(guess => guess.charArray).flat().join('')
+  }
+  const stringifiedData = JSON.stringify(rawData)
+  const encodedString = encodeString(stringifiedData)
+  return encodedString;
 }
 
 const renderUsedLetters = () => {
@@ -187,6 +255,11 @@ const submitNewGuess = newGuessWord => {
       isCorrect: guessResult.every(res => res === 2)
     };
     guesses.push(guessObject);
+    guessObject.scoreArray.forEach((score, i) => {
+      if(score === 2){
+        exactMatches.add(guessObject.charArray[i]);
+      }
+    })
     renderGuessListRowScore(guessObject);
     guessCount++;
     currentInput = '';
@@ -312,12 +385,12 @@ const updateHistoricalRawUserData = (gameData) => {
   localStorage.setItem(LS_RAW_USER_DATA_KEY, JSON.stringify(existingRawUserData));
 }
 
-const startChallengeMode = (score) => {
-  if(score){
-    challengerScore = score;
+const startChallengeMode = (challengeData) => {
+  if(challengeData){
+    challengerScore = challengeData.scoreArray;
     const wordTiles = Array.from(guessListRootElement.querySelectorAll('.guessLetter'));
-    for(let i = 0; i < score.length; i++){
-      const tileScore = score[i];
+    for(let i = 0; i < challengerScore.length; i++){
+      const tileScore = challengerScore[i];
       wordTiles[i].dataset.challenger_score = tileScore;
     }
   }
@@ -342,6 +415,15 @@ const generateGraphicFromScoreString = scoreString => {
   }
   return chunkedArray.join("");
 }
+const generateGraphicFromScoreArray = scoreArray => {
+  const colors = ['⬛','🟨','🟩'];
+  const transformedArray = scoreArray.map(score => colors[score]);
+  let chunkedArray = [];
+  for(let i = 0; i < transformedArray.length; i+= 5){
+    chunkedArray = [ ...chunkedArray, ...transformedArray.slice(i, i + 5), '<br/>']
+  }
+  return chunkedArray.join("");
+}
 
 const generateGraphicalScore = (guesses) => {
   const colors = ['⬛','🟨','🟩'];
@@ -359,10 +441,16 @@ const generateScoreString = (guesses) => {
   }, '')
 }
 
+const generateCharString = (guesses) => {
+  return guesses.reduce((acc, curr) => {
+    const row  = curr.charArray.map(score => score).join('');
+    return `${acc}${row}`
+  }, '')
+};
+
 const shareChallengeLink = () => {
-  const seed = encodeSecretForSeeding(secret);
-  const scoreCard = generateScoreString(guesses);
-  const challengeURL = `${window.location.origin}/${window.location.pathname}?seed=${seed}&score=${scoreCard}`;
+  const scoreCard = generateChallengerDataString();
+  const challengeURL = `${window.location.origin}${window.location.pathname}?${QUERYSTRING_CHALLENGE_KEY}=${scoreCard}`;
   const resultGraphic = generateGraphicalScore(guesses);
   let shareObject;
   if(hasWon === true) {
@@ -390,11 +478,13 @@ const shareChallengeLink = () => {
 }
 
 const renderGloatScreen = () => {
-  const myScore = generateScoreString(guesses);
+  const myScore = guesses.reduce((acc, curr) => {
+    return [...acc, ...curr.scoreArray]
+  }, []);
   const challengerTries = challengerScore.length / 5;
   const myTries = myScore.length / 5;
-  const challengerFoundWord = challengerScore.slice(-5) === '22222';
-  const IFoundWord = myScore.slice(-5) === '22222';
+  const challengerFoundWord = challengerScore.slice(challengerScore.length -5, 5 ).every(score => score === 2);
+  const IFoundWord = myScore.slice(myScore.length -5, 5 ).every(score => score === 2);
   let result;
   if(challengerFoundWord && IFoundWord){
     if(challengerTries < myTries){
@@ -428,25 +518,25 @@ const renderGloatScreen = () => {
           : 'I Lose!'
      }</h1>
     <div class="gloat-result-container ${ result }">
-      <div class="gloat-result-text">
-        <h2>Challenger</h2>
-        <div class="gloat-result-graphic">${ result === 'failure' ? `🏆` : ''}</div>
-      </div>
-      <div class="gloat-score-graphic">
+      <h2>Challenger</h2>
+      <div class="gloat-result-main">
+        <div class="gloat-result-trophy">${ result === 'failure' ? `🏆` : ''}</div>
+        <div class="gloat-score-graphic">
         <p>
-        ${ generateGraphicFromScoreString(challengerScore) }
+        ${ generateGraphicFromScoreArray(challengerScore) }
         </p>
+        </div>
       </div>
-    </div>
-    <div class="gloat-result-container">
-      <div class="gloat-result-text">
-        <h2>Me</h2>
-        <div class="gloat-result-graphic">${ result === 'success' ? '🏆' : ''}</div>
       </div>
-      <div class="gloat-score-graphic">
-        <p>
-        ${ generateGraphicFromScoreString(myScore) }
-        </p>
+      <div class="gloat-result-container">
+      <h2>Me</h2>
+      <div class="gloat-result-main">
+        <div class="gloat-result-trophy">${ result === 'success' ? '🏆' : ''}</div>
+        <div class="gloat-score-graphic">
+          <p>
+          ${ generateGraphicFromScoreArray(myScore) }
+          </p>
+        </div>
       </div>
     </div>
     <button id="gloat-share-button">Share Challenge Results</button>
@@ -454,11 +544,8 @@ const renderGloatScreen = () => {
   gloatContainer.innerHTML = innerHTML;
 }
 
-const generateNewSecret = (seed) => {
+const generateNewSecret = () => {
   let secret;
-  if(seed){
-    return decodeSecretForSeeding(seed);
-  }
   const allPossibleWords = new Set(SECRET_WORD_LIST);
   const usedWords = getHistoricalGameData() || [];
   // If there are still remaining words to choose from, Filter out used words and choose.
@@ -476,7 +563,7 @@ const generateNewSecret = (seed) => {
   return secret
 }
 
-const newGame = (seed, challengerScore) => {
+const newGame = (challengeData) => {
   // TODO: Move all visual gamestate clearing into function?
   document.body.dataset.gamestate = undefined;
   challengeButton.style.display = 'none';
@@ -489,11 +576,11 @@ const newGame = (seed, challengerScore) => {
   isFinished = false;
   hasWon = false;
   guessCount = 0;
-  secret = generateNewSecret(seed);
+  secret = challengeData?.secret || generateNewSecret();
   // TODO: Load saved preferences for theme
   renderGuessListRows();
   teardownChallengeMode();
-  startChallengeMode(challengerScore);
+  startChallengeMode(challengeData);
   renderRecentlySeenWordsList();
   refresh();
   console.debug(secret)
@@ -526,15 +613,16 @@ const onLoad = ()=> {
   // Saves us having to update the querystring to remove the seed later without
   // getting stuck playing the same word.
   const searchParams = new URLSearchParams(window.location.search);
-  const seed = searchParams.get(QUERYSTRING_SEED_KEY);
-  challengerScore = searchParams.get(QUERYSTRING_CHALLENGER_SCORE_KEY);
+  const challenge = searchParams.get(QUERYSTRING_CHALLENGE_KEY);
+  const challengeData = challenge && processRawChallengerData(challenge); // Empty strings throw in json.parse
   // Decided to remove querystring after all. Gets rid of confusing discrepency in behavior
   // between refresh and new game button.
-  history.pushState(null, "", window.location.href.split("?")[0]);
-  newGame(seed, challengerScore);
+  // history.pushState(null, "", window.location.href.split("?")[0]);
+  newGame(challengeData);
 }
 
 const gameOver = () => {
+  generateChallengerDataString();
   isFinished = true;
   keyboardRoot.style.display = 'none';
   // challengeButton.disabled = false;
@@ -565,9 +653,16 @@ onLoad();
 // ++ Create seeding and allow sharing by seed (override used list when using seed) with a visual and "Can you beat my score?"
 // ++ BUG concatenating whole url again
 // ++ Show challenger score
-// Show challenge success
+// ++ Show challenge success
+// ++ Add gloat feature
+// ++ Pass encrypted characters instead of score to allow showing all challengers words in results screen
+// ++ BUG Wordcheck will reach challenge scores and mess up keyboard rendering
+// ++ Update to pass challenge object instead of discrete keys
+// Generate gloat screen with all words shown instead of just score graphic
+// MAYBE Use a UUID for identifiers to help with name collisions (two people named John) if trying to institute a
+//   barebones challenge history (local storage only)
+// MAYBE add versioning to challenge object shape (probably should :) ) 
 // Allow setting name for sharing
-// Add gloat feature
 // Restore focus to window after interacting with button
 // Add butter bar for validation error messages
 // Reveal correct word on failure
@@ -583,3 +678,6 @@ onLoad();
 // Improve victory and defeat animations
 // add pwa support for iphone
 // Link to original
+// BUG gloat button showing even when no challenge.
+// IMPROVE, insure correlation of secret and challenger by calculating challenger score from incoming
+//   secret and not assumed one ass is in mvp
