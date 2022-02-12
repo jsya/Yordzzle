@@ -2,6 +2,12 @@
   --primary-background-color: #1a1a1b;
   --background-color--success: #0d6540e0;
   --background-color--failure: #a50909c9;
+  --tile-text-primary: #D7DADC;
+  --primary-color-none: #3a3a3c;
+  --primary-color-half: #B59F3B;
+  --secondary-color-half: #a28c2e;
+  --primary-color-full: #538D4E;
+  --secondary-color-full: #3e6d3a;
 }
 
 * {
@@ -399,19 +405,18 @@ html[data-modal="true"] .modal-container {
 }
 
 .modal-inner-container {
-  width: 90%;
-  height: 90%;
+  width: 95%;
+  height: 95%;
   background: var(--primary-background-color);
-  padding: 5px 10px;
   color: white;
   display: flex;
   flex-direction: column;
 }
 
 button.modal-close {
-  padding: 5px;
+  padding: 10px 15px;
   display: block;
-  font-size: 2rem;
+  font-size: 1.5rem;
   margin-left: auto;
   cursor: pointer;
   color:  white;
@@ -437,43 +442,71 @@ button.modal-close {
 }
 
 .gloat-container h1 {
-  font-size: 4rem;
+  font-size: 2.5rem;
   text-align: center;
 }
 
 .gloat-container button {
-  background: grey;
+  background: var(--secondary-color-full);
   color: white;
-  padding: 1.5rem 1.5rem;
+  padding: .5rem 1.5rem;
   border-radius: 10px;
   margin: 0 auto;
-  margin-bottom: 20px;
-  font-size: 1.5rem;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.gloat-container hr {
+  width: 60%;
+  background: #302f2f;
+  border: none;
+  height: 1px;
 }
 
 .gloat-result-container {
   display: flex;
-  width: 90%;
-  justify-content: space-between;
+  justify-content: space-around;
+  width: 100%;
 }
 
-.gloat-result-text {
+.gloat-result-container h2 {
+  text-align: center;
+  margin: 5px 0;
+  width: 150px;
+}
+
+.gloat-result-main {
   display: flex;
-  flex-direction: column;
+  min-height: calc(24vh + 5px);
 }
 
-.gloat-result-trophy {
-  flex: 1 1;
-  font-size: 20vw;
+.gloat-result-graphic {
+  margin-left: auto;
+  color: var(--tile-text-primary);
+}
+
+.result-row {
+  display: flex;
+}
+
+.result-tile {
+  margin: 1px;
+  height: 4vh;
+  width: 4vh;
   display: flex;
   justify-content: center;
   align-items: center;
+  text-transform: uppercase;
+  background: var(--primary-color-none);
 }
 
-.gloat-score-graphic p {
-  font-size: 7vw;
-  letter-spacing: -1vw;
-  line-height: 1.2;
+.result-tile.half {
+  /* secondary is more readable without bold font */
+  background: var(--secondary-color-half);
+}
+
+.result-tile.full {
+  background: var(--primary-color-full);
 }
 
 @media screen and (min-width: 450px) {
@@ -493,13 +526,6 @@ button.modal-close {
     justify-content: space-around;
   }
 
-  .gloat-result-trophy {
-    font-size: 5rem;
-  }
-
-  .gloat-score-graphic p {
-    font-size: 2rem;
-    letter-spacing: initial;
-    line-height: initial;
+  .gloat-result-graphic {
   }
 }

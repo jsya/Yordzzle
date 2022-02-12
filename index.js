@@ -8,7 +8,6 @@ const KEYBOARD_LAYOUT = [
 const LS_GAME_DATA_KEY = 'LS_GAME_DATA';
 const LS_RAW_USER_DATA_KEY = 'LS_RAW_USER_DATA';
 const LS_SETTINGS_DATA_KEY = 'LS_SETTINGS_DATA';
-const QUERYSTRING_SEED_KEY = 'seed';
 const QUERYSTRING_CHALLENGE_KEY = 'challenge';
 
 const keyboardRoot = document.getElementById('keyboard');
@@ -20,8 +19,6 @@ const modalContainer = document.getElementById('modal');
 const modalCloseButton = document.getElementById('modal_close_button');
 const gloatButton = document.getElementById('gloat_button');
 
-let rawChallengeData;
-let processedChallengeData;
 /**
  * {
  *  charArray: ['','','','',''],
@@ -36,8 +33,7 @@ let secret;
 let guessCount = 0;
 let isFinished = false;
 let hasWon = false;
-let challengerCharArray;
-let challengerScore;
+let challengeData;
 
 // To be used for capturing multiple vectors of user input and for submitting new guesses.
 let currentInput = '';
@@ -50,6 +46,7 @@ let currentInput = '';
 const encodeString = btoa;
 const decodeString = atob;
 
+// TODO: Allow for function overloading for string or arrays for both
 const wordCheck = (guess, secret) => {
   const guessList = guess.toLowerCase().split('');
   const secretList = secret.toLowerCase().split('');
@@ -71,8 +68,6 @@ const wordCheck = (guess, secret) => {
       secretList[i] = null;
     }
   }
-
-  // TODO: Check for success state.
 
   // Pass 2: Inexact matches
   for(let i = 0; i <guessList.length; i++){
@@ -142,8 +137,8 @@ const generateChallengerDataString = () => {
   // store that I could dump straight into a JSON.
   const rawData = {
     // TODO: Institute names :)
+    // n: 'Brendan',
     v: VERSION,
-    n: 'Brendan',
     s: secret,
     // TODO: Ok, I said last time would be the last time I write chunking and unchunking logic again. Clearly, the
     // underlying data needs to be restructured. But, ugh, its late and the great british baking show is hitting
@@ -385,20 +380,20 @@ const updateHistoricalRawUserData = (gameData) => {
   localStorage.setItem(LS_RAW_USER_DATA_KEY, JSON.stringify(existingRawUserData));
 }
 
-const startChallengeMode = (challengeData) => {
-  if(challengeData){
-    challengerScore = challengeData.scoreArray;
+const startChallengeMode = (data) => {
+  if(data){
+    challengeData = data;
     const wordTiles = Array.from(guessListRootElement.querySelectorAll('.guessLetter'));
-    for(let i = 0; i < challengerScore.length; i++){
-      const tileScore = challengerScore[i];
+    for(let i = 0; i < challengeData.scoreArray.length; i++){
+      const tileScore = challengeData.scoreArray[i];
       wordTiles[i].dataset.challenger_score = tileScore;
     }
   }
 }
 
 const teardownChallengeMode = () => {
-  if(challengerScore){
-    challengerScore = null;
+  if(challengeData){
+    challengeData = null;
     const wordTiles = Array.from(guessListRootElement.querySelectorAll('.guessLetter'));
     wordTiles.forEach(tile => { tile.dataset.challenger_score = undefined; });
   }
@@ -477,15 +472,42 @@ const shareChallengeLink = () => {
 
 }
 
+const renderFullResultsPreview = (charArray, scoreArray) => {
+  const renderResultsRows = () => {
+    let html = '';
+    for(let i = 0; i < charArray.length; i+=5){
+      html = html.concat(`
+        <div class="result-row">
+          ${ charArray.slice(i, i +5).map((char, j) => `<span class="result-tile ${
+            scoreArray[i + j] === 2 ? 'full' 
+              : scoreArray[i + j] === 1 ? 'half'
+                : ''
+          }">${char}</span>`).join('')}
+        </div>
+      `)
+    }
+    return html;
+  }
+  let html = `
+    <div class="gloat-result-graphic">${renderResultsRows(charArray, scoreArray)}</div>
+  `;
+  return html;
+}
+
 const renderGloatScreen = () => {
-  const myScore = guesses.reduce((acc, curr) => {
+  const myScoreArray = guesses.reduce((acc, curr) => {
     return [...acc, ...curr.scoreArray]
   }, []);
-  const challengerTries = challengerScore.length / 5;
-  const myTries = myScore.length / 5;
-  const challengerFoundWord = challengerScore.slice(challengerScore.length -5, 5 ).every(score => score === 2);
-  const IFoundWord = myScore.slice(myScore.length -5, 5 ).every(score => score === 2);
+  // REFACTOR: stop all this conversion everywhere
+  const myCharArray = guesses.reduce((acc, curr) => {
+    return [...acc, ...curr.charArray]
+  }, []);
+  const challengerTries = challengeData.scoreArray.length / 5;
+  const myTries = myScoreArray.length / 5;
+  const challengerFoundWord = challengeData.scoreArray.slice(challengeData.scoreArray.length -5, challengeData.scoreArray.length).every(score => score === 2);
+  const IFoundWord = myScoreArray.slice(myScoreArray.length -5, myScoreArray.length).every(score => score === 2);
   let result;
+  // TODO: Bug on showing tied logic when i won in and they lost in six
   if(challengerFoundWord && IFoundWord){
     if(challengerTries < myTries){
       result = 'failure';
@@ -518,25 +540,16 @@ const renderGloatScreen = () => {
           : 'I Lose!'
      }</h1>
     <div class="gloat-result-container ${ result }">
-      <h2>Challenger</h2>
+      <h2>${ challengeData.name || 'Challenger' } <span class="gloat-result-trophy">${ result === 'failure' ? `🏆` : ''}</span></h2>
       <div class="gloat-result-main">
-        <div class="gloat-result-trophy">${ result === 'failure' ? `🏆` : ''}</div>
-        <div class="gloat-score-graphic">
-        <p>
-        ${ generateGraphicFromScoreArray(challengerScore) }
-        </p>
-        </div>
+        ${ renderFullResultsPreview(challengeData.charArray, challengeData.scoreArray) }
       </div>
-      </div>
-      <div class="gloat-result-container">
-      <h2>Me</h2>
+    </div>
+    <hr/>
+    <div class="gloat-result-container">
+      <h2>Me <span class="gloat-result-trophy">${ result === 'success' ? '🏆' : ''}</span></h2>
       <div class="gloat-result-main">
-        <div class="gloat-result-trophy">${ result === 'success' ? '🏆' : ''}</div>
-        <div class="gloat-score-graphic">
-          <p>
-          ${ generateGraphicFromScoreArray(myScore) }
-          </p>
-        </div>
+        ${ renderFullResultsPreview(myCharArray, myScoreArray) }
       </div>
     </div>
     <button id="gloat-share-button">Share Challenge Results</button>
@@ -598,7 +611,7 @@ const onLoad = ()=> {
     }
   })
   gloatButton.addEventListener('click', () => {
-    if(!isFinished || !challengerScore){
+    if(!isFinished || !challengeData){
       return;
     }
     // TODO: Reuse challenge button for gloating when in challengeMode
@@ -627,7 +640,7 @@ const gameOver = () => {
   keyboardRoot.style.display = 'none';
   // challengeButton.disabled = false;
   challengeButton.style.display = 'block';
-  if(challengerScore){
+  if(challengeData){
     gloatButton.style.display = 'block';
   }
   updateHistoricalGameData(secret);
