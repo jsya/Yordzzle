@@ -130,8 +130,8 @@ main {
 
 .guessLetter {
   margin: .2rem;
-  width: 15vw;
-  height: 15vw;
+  width: 12vw;
+  height: 12vw;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -261,7 +261,7 @@ main {
 
 .gloat-button, .challenge-button {
   display: none;
-  background: grey;
+  background: var(--secondary-color-full);
   color: white;
   font-size: 1.8rem;
   padding: 10px;
@@ -279,6 +279,7 @@ main {
   flex: 1;
   padding: 20px 0;
   max-width: 90%;
+  min-height: 200px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -344,12 +345,15 @@ header {
 }
 
 header button {
-  background: green;
+  background: var(--secondary-color-full);
   color: white;
   height: 35px;
   width: 175px;
   border-radius: .25rem;
   cursor: pointer;
+  text-transform: uppercase;
+  font-weight: 400;
+  letter-spacing: .2rem;
 }
 
 header button:disabled {
