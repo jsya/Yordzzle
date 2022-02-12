@@ -671,7 +671,7 @@ onLoad();
 // ++ Pass encrypted characters instead of score to allow showing all challengers words in results screen
 // ++ BUG Wordcheck will reach challenge scores and mess up keyboard rendering
 // ++ Update to pass challenge object instead of discrete keys
-// Generate gloat screen with all words shown instead of just score graphic
+// ++ Generate gloat screen with all words shown instead of just score graphic
 // MAYBE Use a UUID for identifiers to help with name collisions (two people named John) if trying to institute a
 //   barebones challenge history (local storage only)
 // MAYBE add versioning to challenge object shape (probably should :) ) 
