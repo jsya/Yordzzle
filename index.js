@@ -221,6 +221,15 @@ const renderGuessListRowScore = (guess) => {
   }
 }
 
+// NOTE: Don't need tp remove since the entire root element is getting blown out on new game.
+const renderSecretReveal = (secret) => {
+  const row = document.createElement('div');
+  row.classList.add('guessWord');
+  row.id = 'secret_reveal_row';
+  row.innerHTML = secret.split('').map(char => `<span class="guessLetter">${char}</span>`).join('')
+  guessListRootElement.appendChild(row);
+}
+
 const renderRecentlySeenWordsList = () => {
   const pastWords = getHistoricalGameData();
   const recentWordsListRoot = document.getElementById('recent_words_list_root');
@@ -267,6 +276,7 @@ const submitNewGuess = newGuessWord => {
       }
       else {
         hasWon = false;
+        renderSecretReveal(secret);
         document.body.dataset.gamestate = "failure";
       }
     }
@@ -675,10 +685,11 @@ onLoad();
 // MAYBE Use a UUID for identifiers to help with name collisions (two people named John) if trying to institute a
 //   barebones challenge history (local storage only)
 // MAYBE add versioning to challenge object shape (probably should :) ) 
+// Reveal correct word on failure
+// Switch success state colors from background to buttons
 // Allow setting name for sharing
 // Restore focus to window after interacting with button
 // Add butter bar for validation error messages
-// Reveal correct word on failure
 // Move all styles to variables.
 // Add restyling options
 // Store style preferences in local storage

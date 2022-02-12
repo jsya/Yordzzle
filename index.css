@@ -95,7 +95,7 @@ body[data-gamestate="success"] {
 }
 
 body[data-gamestate="failure"] {
-  background: var(--background-color--failure);
+  background: linear-gradient(90deg, #830000 0%, rgb(209 2 44) 15%, rgb(255 77 77) 50%, rgb(255 0 52) 85%, #830000 100%);
   transition: background-color 200ms ease-in;
   transition-delay: 650ms;
 }
