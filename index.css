@@ -263,12 +263,13 @@ main {
   display: none;
   background: var(--secondary-color-full);
   color: white;
-  font-size: 1.8rem;
   padding: 10px;
   border-radius: 5px;
   margin: 5px 0;
   text-transform: uppercase;
   width: 280px;
+  font-weight: 400;
+  letter-spacing: .2rem;
 }
 
 .gloat-button {
