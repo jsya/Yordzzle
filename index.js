@@ -715,6 +715,8 @@ onLoad();
 // ++  secret and not assumed one ass is in mvp
 // ++ BUG input not getting cleared on new game
 // ++ BUG Local storage recording duplicate words
+// Remove code for recent words
+// Persist gamestate to sessionstorage to avoid accidental refreshes
 // MAYBE Use a UUID for identifiers to help with name collisions (two people named John) if trying to institute a
 //   barebones challenge history (local storage only)
 // Switch success state colors from background to buttons
