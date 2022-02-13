@@ -624,6 +624,7 @@ const newGame = (challengeData) => {
   keyboardRoot.style.display = 'flex';
   // challengeButton.disabled = true;
   guesses = [];
+  currentInput = '';
   usedLetters = new Set();
   exactMatches = new Set();
   isFinished = false;
@@ -712,6 +713,7 @@ onLoad();
 // ++ MAYBE add versioning to challenge object shape (probably should :) ) 
 // ++ IMPROVE, insure correlation of secret and challenger by calculating challenger score from incoming
 // ++  secret and not assumed one ass is in mvp
+// BUG input not getting cleared on new game
 // MAYBE Use a UUID for identifiers to help with name collisions (two people named John) if trying to institute a
 //   barebones challenge history (local storage only)
 // Switch success state colors from background to buttons
