@@ -708,9 +708,12 @@ onLoad();
 // ++ Pause keylistener and disable keybaord while letters are being revealed
 // ++ Automatically show challenge results on completion
 // ++ Restore focus to window after interacting with button
+// ++ Delay rendering of buttons until animation finishes.
+// ++ MAYBE add versioning to challenge object shape (probably should :) ) 
+// ++ IMPROVE, insure correlation of secret and challenger by calculating challenger score from incoming
+// ++  secret and not assumed one ass is in mvp
 // MAYBE Use a UUID for identifiers to help with name collisions (two people named John) if trying to institute a
 //   barebones challenge history (local storage only)
-// MAYBE add versioning to challenge object shape (probably should :) ) 
 // Switch success state colors from background to buttons
 // Allow setting name for sharing
 // Add butter bar for validation error messages
@@ -727,7 +730,5 @@ onLoad();
 // add pwa support for iphone
 // Link to original
 // BUG gloat button showing even when no challenge.
-// IMPROVE, insure correlation of secret and challenger by calculating challenger score from incoming
-//   secret and not assumed one ass is in mvp
 
 // lovejoy
