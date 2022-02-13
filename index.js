@@ -105,7 +105,6 @@ const processRawChallengerData = (encryptedParam) => {
  */
   // Decrypt, parse, then process
   const decryptedRawData = decodeString(encryptedParam);
-  console.log(decryptedRawData)
   if(!decryptedRawData){
     // To avoid JSON.parse throwing on null.
     return;
@@ -126,7 +125,6 @@ const processRawChallengerData = (encryptedParam) => {
   }
   // SHIT!! NEED to update wordcheck to avoid conflicting with exactMatches set so that challenger data doesn't
   // corrupt keyboard
-  console.debug({ processedData });
   return processedData;
 }
 

@@ -407,8 +407,8 @@ html[data-modal="true"] .modal-container {
 }
 
 .modal-inner-container {
-  width: 95%;
-  height: 95%;
+  width: 100%;
+  height: 100%;
   background: var(--primary-background-color);
   color: white;
   display: flex;
@@ -479,7 +479,7 @@ button.modal-close {
 
 .gloat-result-main {
   display: flex;
-  min-height: calc(24vh + 5px);
+  min-height: calc(18vh + 5px);
 }
 
 .gloat-result-graphic {
@@ -493,8 +493,8 @@ button.modal-close {
 
 .result-tile {
   margin: 1px;
-  height: 4vh;
-  width: 4vh;
+  height: 3vh;
+  width: 3vh;
   display: flex;
   justify-content: center;
   align-items: center;
