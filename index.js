@@ -17,6 +17,7 @@ const challengeButton = document.getElementById("challenge_button");
 const resetButton = document.getElementById('reset_all');
 const modalContainer = document.getElementById('modal');
 const modalCloseButton = document.getElementById('modal_close_button');
+const gloatContainer = document.getElementById('gloat_container');
 
 /**
  * {
@@ -55,9 +56,6 @@ const wordCheck = (guess, secret) => {
   // must be 5 chars
   // must be a-z
   // must be coerced to uppercase (or lower - whatever)
-  // Need to make sure to account for duplicate letters.
-  // Ie, if there are three llls in guess, and one l in the solution
-  // only one l should show coloring. 
 
   // Pass 1: Exact matches
   for(let i = 0; i < guessList.length; i++){
@@ -149,6 +147,10 @@ const generateChallengerDataString = () => {
   const encodedString = encodeString(stringifiedData)
   return encodedString;
 }
+
+/**
+ * RENDERING
+ */
 
 const renderUsedLetters = () => {
   // Keyboard logic, if a letter has been found correctly at least once, even if only partial correct
@@ -359,7 +361,9 @@ const touchListener =  e => {
   if(button){
     const key = button.dataset.key;
     if('abcdefghijklmnopqrstuvwxyz↵←'.includes(key)){
-      document.dispatchEvent(new CustomEvent("guess-input-update", { detail: key }))
+      document.dispatchEvent(new CustomEvent("guess-input-update", { detail: key }));
+      // Remove focus from button to prevent issues with lingering focus/highlighting on some devices.
+      button.blur();
     }
   }
   return false;
@@ -524,7 +528,7 @@ const renderFullResultsPreview = (charArray, scoreArray) => {
   return html;
 }
 
-const renderGloatScreen = () => {
+const renderChallengeResultsScreen = () => {
   const myScoreArray = guesses.reduce((acc, curr) => {
     return [...acc, ...curr.scoreArray]
   }, []);
@@ -559,7 +563,6 @@ const renderGloatScreen = () => {
     result = 'draw';
   }
   // TODO: Add little images of people, happy, sad, bored.
-  const gloatContainer = document.getElementById('gloat_container');
   gloatContainer.dataset.result = result;
   const innerHTML = `
     <h1>${ 
@@ -587,14 +590,14 @@ const renderGloatScreen = () => {
   gloatContainer.innerHTML = innerHTML;
 }
 
-const openGloatScreen = () => {
+const openChallengeResultsScreen = () => {
   if(!isFinished || !challengeData){
     return;
   }
   // TODO: Reuse challenge button for gloating when in challengeMode
   document.documentElement.dataset.modal = true;
   modal.dataset.type = "gloat";
-  renderGloatScreen();
+  renderChallengeResultsScreen();
 }
 
 const generateNewSecret = () => {
@@ -672,7 +675,7 @@ const gameOver = () => {
   challengeButton.style.display = 'block';
   if(challengeData){
     // TODO: Listen for animation end.
-    openGloatScreen();
+    openChallengeResultsScreen();
   }
   updateHistoricalGameData(secret);
   updateHistoricalRawUserData(guesses);
@@ -706,12 +709,12 @@ onLoad();
 // ++ Reveal correct word on failure
 // ++ Pause keylistener and disable keybaord while letters are being revealed
 // ++ Automatically show challenge results on completion
+// ++ Restore focus to window after interacting with button
 // MAYBE Use a UUID for identifiers to help with name collisions (two people named John) if trying to institute a
 //   barebones challenge history (local storage only)
 // MAYBE add versioning to challenge object shape (probably should :) ) 
 // Switch success state colors from background to buttons
 // Allow setting name for sharing
-// Restore focus to window after interacting with button
 // Add butter bar for validation error messages
 // Move all styles to variables.
 // Add restyling options
