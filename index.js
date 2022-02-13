@@ -386,7 +386,7 @@ const getHistoricalGameData = () => {
 
 const updateHistoricalGameData = (usedWord) => {
   const existingWordList = getHistoricalGameData();
-  const updatedGameData = existingWordList ? [usedWord, ...existingWordList ] : [ usedWord ];
+  const updatedGameData = existingWordList ? Array.from(new Set([usedWord, ...existingWordList ])) : [ usedWord ];
   localStorage.setItem(LS_GAME_DATA_KEY, JSON.stringify(updatedGameData));
 }
 
@@ -713,7 +713,8 @@ onLoad();
 // ++ MAYBE add versioning to challenge object shape (probably should :) ) 
 // ++ IMPROVE, insure correlation of secret and challenger by calculating challenger score from incoming
 // ++  secret and not assumed one ass is in mvp
-// BUG input not getting cleared on new game
+// ++ BUG input not getting cleared on new game
+// ++ BUG Local storage recording duplicate words
 // MAYBE Use a UUID for identifiers to help with name collisions (two people named John) if trying to institute a
 //   barebones challenge history (local storage only)
 // Switch success state colors from background to buttons
