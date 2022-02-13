@@ -17,7 +17,6 @@ const challengeButton = document.getElementById("challenge_button");
 const resetButton = document.getElementById('reset_all');
 const modalContainer = document.getElementById('modal');
 const modalCloseButton = document.getElementById('modal_close_button');
-const gloatButton = document.getElementById('gloat_button');
 
 /**
  * {
@@ -34,10 +33,11 @@ let guessCount = 0;
 let isFinished = false;
 let hasWon = false;
 let challengeData;
+let inputDisabled = false;
 
 // To be used for capturing multiple vectors of user input and for submitting new guesses.
 let currentInput = '';
-
+let activeAnimationQueue = new Set();
 /**
  * UTILITIES
  */
@@ -205,6 +205,8 @@ const renderGuessListRowInput = (guessInput) => {
 const renderGuessListRowScore = (guess) => {
   const rowRootElement = guessListRootElement.querySelector(`div.guessWord[data-index="${guessCount}"]`)
   const tiles = Array.from(rowRootElement.querySelectorAll('span.guessLetter'));
+  const promises = [];
+  // Make foreach.
   for(let i = 0; i < 5; i++){
     let scoreClass;
     if(guess.scoreArray[i] === 0){
@@ -216,9 +218,15 @@ const renderGuessListRowScore = (guess) => {
     else {
       scoreClass = 'full';
     }
+    promises.push(new Promise((res) => {
+      tiles[i].addEventListener('animationend', () => {
+        res()
+      })
+    }))
     tiles[i].classList.add('guessed');
     tiles[i].classList.add(scoreClass);
   }
+  return Promise.all(promises);
 }
 
 // NOTE: Don't need tp remove since the entire root element is getting blown out on new game.
@@ -240,7 +248,7 @@ const renderRecentlySeenWordsList = () => {
   recentWordsListRoot.innerHTML = pastWords.slice(0, 10).map((word) => `<li class="recentWord">${word}</li>`).join('');
 }
 
-const submitNewGuess = newGuessWord => {
+const submitNewGuess = async (newGuessWord) => {
   if(isFinished){
     return;
   }
@@ -264,9 +272,14 @@ const submitNewGuess = newGuessWord => {
         exactMatches.add(guessObject.charArray[i]);
       }
     })
-    renderGuessListRowScore(guessObject);
+    // TODO: Disable keylistener and keyboard 
+    // Set a flag for the listener
+    // TODO visually disable keyboard
+    inputDisabled = true;
+    await renderGuessListRowScore(guessObject);
     guessCount++;
     currentInput = '';
+    inputDisabled = false;
     if(guessObject.isCorrect || guessCount > 5){
       gameOver();
       // e.target.elements.guess.disabled = true;
@@ -285,6 +298,9 @@ const submitNewGuess = newGuessWord => {
 }
 
 const guessInputUpdateListener = e =>  {
+  if(inputDisabled){
+    return;
+  }
   const key = e.detail;
   if(key === 'Enter' || key === '↵'){
     if(isFinished){
@@ -302,6 +318,10 @@ const guessInputUpdateListener = e =>  {
     }
   }
   else {
+    if(isFinished){
+      // Don't allow making guesses after game is over.
+      return;
+    }
     if(key === 'Backspace' || key === '←'){
       if(currentInput.length){
         currentInput = currentInput.slice(0, -1);
@@ -567,6 +587,16 @@ const renderGloatScreen = () => {
   gloatContainer.innerHTML = innerHTML;
 }
 
+const openGloatScreen = () => {
+  if(!isFinished || !challengeData){
+    return;
+  }
+  // TODO: Reuse challenge button for gloating when in challengeMode
+  document.documentElement.dataset.modal = true;
+  modal.dataset.type = "gloat";
+  renderGloatScreen();
+}
+
 const generateNewSecret = () => {
   let secret;
   const allPossibleWords = new Set(SECRET_WORD_LIST);
@@ -590,7 +620,6 @@ const newGame = (challengeData) => {
   // TODO: Move all visual gamestate clearing into function?
   document.body.dataset.gamestate = undefined;
   challengeButton.style.display = 'none';
-  gloatButton.style.display = 'none';
   keyboardRoot.style.display = 'flex';
   // challengeButton.disabled = true;
   guesses = [];
@@ -620,15 +649,6 @@ const onLoad = ()=> {
       shareChallengeLink();
     }
   })
-  gloatButton.addEventListener('click', () => {
-    if(!isFinished || !challengeData){
-      return;
-    }
-    // TODO: Reuse challenge button for gloating when in challengeMode
-    document.documentElement.dataset.modal = true;
-    modal.dataset.type = "gloat";
-    renderGloatScreen();
-  })
   modalCloseButton.addEventListener('click', () => {
     document.documentElement.dataset.modal = false;
   })
@@ -645,13 +665,14 @@ const onLoad = ()=> {
 }
 
 const gameOver = () => {
-  generateChallengerDataString();
   isFinished = true;
+  generateChallengerDataString();
   keyboardRoot.style.display = 'none';
   // challengeButton.disabled = false;
   challengeButton.style.display = 'block';
   if(challengeData){
-    gloatButton.style.display = 'block';
+    // TODO: Listen for animation end.
+    openGloatScreen();
   }
   updateHistoricalGameData(secret);
   updateHistoricalRawUserData(guesses);
@@ -682,10 +703,12 @@ onLoad();
 // ++ BUG Wordcheck will reach challenge scores and mess up keyboard rendering
 // ++ Update to pass challenge object instead of discrete keys
 // ++ Generate gloat screen with all words shown instead of just score graphic
+// ++ Reveal correct word on failure
+// ++ Pause keylistener and disable keybaord while letters are being revealed
+// ++ Automatically show challenge results on completion
 // MAYBE Use a UUID for identifiers to help with name collisions (two people named John) if trying to institute a
 //   barebones challenge history (local storage only)
 // MAYBE add versioning to challenge object shape (probably should :) ) 
-// Reveal correct word on failure
 // Switch success state colors from background to buttons
 // Allow setting name for sharing
 // Restore focus to window after interacting with button
@@ -705,3 +728,5 @@ onLoad();
 // BUG gloat button showing even when no challenge.
 // IMPROVE, insure correlation of secret and challenger by calculating challenger score from incoming
 //   secret and not assumed one ass is in mvp
+
+// lovejoy

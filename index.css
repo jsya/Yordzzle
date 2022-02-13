@@ -91,13 +91,11 @@ body {
 body[data-gamestate="success"] {
   background: var(--background-color--success);
   transition: background-color 200ms ease-in;
-  transition-delay: 650ms;
 }
 
 body[data-gamestate="failure"] {
   background: linear-gradient(90deg, #830000 0%, rgb(209 2 44) 15%, rgb(255 77 77) 50%, rgb(255 0 52) 85%, #830000 100%);
   transition: background-color 200ms ease-in;
-  transition-delay: 650ms;
 }
 
 main {
