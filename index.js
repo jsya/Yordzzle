@@ -666,22 +666,21 @@ const newGame = (challengeData) => {
   challengeButton.style.display = 'none';
   keyboardRoot.style.display = 'flex';
   // challengeButton.disabled = true;
-  guesses = [];
-  updateInputString('')
   // currentInput = '';
+  guesses = [];
   usedLetters = new Set();
   exactMatches = new Set();
   isFinished = false;
   hasWon = false;
   guessCount = 0;
   secret = challengeData?.secret || generateNewSecret();
+  updateInputString('')
   // TODO: Load saved preferences for theme
   teardownChallengeMode();
   startChallengeMode(challengeData);
   renderRecentlySeenWordsList();
   refresh();
-  window.alert(secret)
-  console.debug(secret)
+  console.debug(secret);
 }
 
 const onLoad = ()=> {
