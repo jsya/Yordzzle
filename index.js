@@ -680,6 +680,7 @@ const newGame = (challengeData) => {
   startChallengeMode(challengeData);
   renderRecentlySeenWordsList();
   refresh();
+  window.alert(secret)
   console.debug(secret)
 }
 
