@@ -183,6 +183,22 @@ const renderUsedLetters = () => {
   `;
 };
 
+const updateKeyboardKeyState = (keyChar, classes = []) => {
+  const key = keyboardRoot.querySelector(`button[data-key="${keyChar}"]`);
+  if(key && classes.length){
+    const eventListener = () => {
+      for(let i = 0; i < classes.length; i++){
+        key.classList.remove(classes[i]);
+      }
+      key.removeEventListener('animationend', eventListener);
+    }
+    for(let i = 0; i < classes.length; i++){
+      key.classList.add(classes[i]);
+    }
+    key.addEventListener('animationend', eventListener)
+  }
+}
+
 const renderGuessListRows = () => {
   // rather than iterating through and clearing all the updated attributes, if we create it from whole
   // cloth on each new game we save that effort and still obviate the issue with animations flickering on
@@ -321,6 +337,7 @@ const guessInputUpdateListener = e =>  {
     return;
   }
   const key = e.detail;
+  updateKeyboardKeyState(key, ['tapped'])
   if(key === 'Enter' || key === '↵'){
     if(isFinished){
       // TODO: Broadcast message instead of simulating click;
@@ -367,10 +384,10 @@ const keypressListener = e => {
     return;
   }
   if(e.key === 'Enter' || e.key === '↵'){
-    document.dispatchEvent(new CustomEvent("guess-input-update", { detail: 'Enter' }))
+    document.dispatchEvent(new CustomEvent("guess-input-update", { detail: '↵' }))
   }
   if(e.key === 'Backspace' || e.key === '←'){
-    document.dispatchEvent(new CustomEvent("guess-input-update", { detail: 'Backspace' }))
+    document.dispatchEvent(new CustomEvent("guess-input-update", { detail: '←' }))
   }
   if('abcdefghijklmnopqrstuvwxyz'.includes(e.key.toLowerCase())){
     document.dispatchEvent(new CustomEvent("guess-input-update", { detail: e.key.toLowerCase() }))
@@ -756,7 +773,7 @@ onLoad();
 // ++  secret and not assumed one ass is in mvp
 // ++ BUG input not getting cleared on new game
 // ++ BUG Local storage recording duplicate words
-// Highlight invalid words and refuse submission (saves having to show an error)
+// ++ Highlight invalid words and refuse submission (saves having to show an error)
 // MAYBE Prevent duplicate guesses?
 // implement hard mode (implement modes in general (big refactor coming))
 // Finish sharing logic (ugh)

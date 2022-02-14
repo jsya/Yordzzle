@@ -328,6 +328,22 @@ main {
   background: #818384;
 }
 
+.keyboard-key.tapped {
+  -webkit-animation: key-tap 0.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+          animation: key-tap 0.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+}
+
+@keyframes key-tap {
+  0% {
+    -webkit-transform: scale(1.2);
+            transform: scale(1.2);
+  }
+  100% {
+    -webkit-transform: scale(1);
+            transform: scale(1);
+  }
+}
+
 @media screen and (min-width: 600px){
   .keyboard-row {
     
