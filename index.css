@@ -154,6 +154,10 @@ main {
   border: .1rem solid #3a3a3c;
 }
 
+.guessWord[data-valid="false"] .guessLetter {
+  color: #b64444;
+}
+
 .guessLetter[data-challenger_score="2"] {
   border: 3px solid #538D4E;
 }
@@ -556,3 +560,8 @@ button.modal-close {
   .gloat-result-graphic {
   }
 }
+
+
+/* canvas {
+  z-index: -99;
+} */

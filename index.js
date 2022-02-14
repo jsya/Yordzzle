@@ -38,6 +38,7 @@ let inputDisabled = false;
 
 // To be used for capturing multiple vectors of user input and for submitting new guesses.
 let currentInput = '';
+let isCurrentInputValid = false;
 let activeAnimationQueue = new Set();
 /**
  * UTILITIES
@@ -195,7 +196,11 @@ const renderGuessListRows = () => {
 }
 
 const renderGuessListRowInput = (guessInput) => {
+  // We only want to color input as invalid when it's five letters
+  // TODO: Have function return tile nodes so logic like this can be moved out?
+  const isValid = guessInput.length !== 5 || determineIsValidGuess(guessInput);
   const rowRootElement = guessListRootElement.querySelector(`div.guessWord[data-index="${guessCount}"]`)
+  rowRootElement.dataset.valid = isValid;
   const tiles = Array.from(rowRootElement.querySelectorAll('span.guessLetter'));
   for(let i = 0; i < 5; i++){
     tiles[i].innerText = guessInput[i] ? guessInput[i] : '';
@@ -248,53 +253,67 @@ const renderRecentlySeenWordsList = () => {
   recentWordsListRoot.innerHTML = pastWords.slice(0, 10).map((word) => `<li class="recentWord">${word}</li>`).join('');
 }
 
+const determineIsValidGuess = (guess) => SECRET_WORD_LIST.includes(guess.toLowerCase()) || ACCEPTABLE_WORD_LIST.includes(guess.toLowerCase());
+
 const submitNewGuess = async (newGuessWord) => {
   if(isFinished){
     return;
   }
-  const isValidWord = SECRET_WORD_LIST.includes(newGuessWord.toLowerCase()) || ACCEPTABLE_WORD_LIST.includes(newGuessWord.toLowerCase());
-  if(!isValidWord){
-    console.log('Invalid word')
-  }
-  else {
-    newGuessWord.split('').forEach(el => {
-      usedLetters.add(el.toLowerCase());
-    })
-    const guessResult = wordCheck(newGuessWord, secret);
-    const guessObject = {
-      charArray: newGuessWord.split(''),
-      scoreArray: guessResult,
-      isCorrect: guessResult.every(res => res === 2)
-    };
-    guesses.push(guessObject);
-    guessObject.scoreArray.forEach((score, i) => {
-      if(score === 2){
-        exactMatches.add(guessObject.charArray[i]);
-      }
-    })
-    // TODO: Disable keylistener and keyboard 
-    // Set a flag for the listener
-    // TODO visually disable keyboard
-    inputDisabled = true;
-    await renderGuessListRowScore(guessObject);
-    guessCount++;
-    currentInput = '';
-    inputDisabled = false;
-    if(guessObject.isCorrect || guessCount > 5){
-      gameOver();
-      // e.target.elements.guess.disabled = true;
-      if(guessObject.isCorrect){
-        hasWon = true;
-        document.body.dataset.gamestate = "success";
-      }
-      else {
-        hasWon = false;
-        renderSecretReveal(secret);
-        document.body.dataset.gamestate = "failure";
-      }
+  newGuessWord.split('').forEach(el => {
+    usedLetters.add(el.toLowerCase());
+  })
+  const guessResult = wordCheck(newGuessWord, secret);
+  const guessObject = {
+    charArray: newGuessWord.split(''),
+    scoreArray: guessResult,
+    isCorrect: guessResult.every(res => res === 2)
+  };
+  guesses.push(guessObject);
+  guessObject.scoreArray.forEach((score, i) => {
+    if(score === 2){
+      exactMatches.add(guessObject.charArray[i]);
+    }
+  })
+  // TODO: Disable keylistener and keyboard 
+  // Set a flag for the listener
+  // TODO visually disable keyboard
+  inputDisabled = true;
+  await renderGuessListRowScore(guessObject);
+  guessCount++;
+  currentInput = '';
+  inputDisabled = false;
+  if(guessObject.isCorrect || guessCount > 5){
+    gameOver();
+    // e.target.elements.guess.disabled = true;
+    if(guessObject.isCorrect){
+      hasWon = true;
+      document.body.dataset.gamestate = "success";
+    }
+    else {
+      hasWon = false;
+      renderSecretReveal(secret);
+      document.body.dataset.gamestate = "failure";
     }
   }
+  
   refresh();
+}
+
+const updateInputString = (inputString) => {
+  // Besides adding or removing chars to the input string, we can use this opportunity to
+  // determine whether a word is valid (when 5 chars long) and if so, conditionally change color and
+  // disable submit button.
+
+  // CLEAR
+  currentInput = inputString;
+  if(currentInput.length === 5){
+    // TODO Check word and determine if word is false
+    isCurrentInputValid = determineIsValidGuess(currentInput);
+  }
+  else {
+    isCurrentInputValid = false;
+  }
+  renderGuessListRowInput(currentInput);
 }
 
 const guessInputUpdateListener = e =>  {
@@ -308,13 +327,18 @@ const guessInputUpdateListener = e =>  {
       newGameButton.click();
       return;
     }
-    if(currentInput.length === 5){
+    if(isCurrentInputValid){
       submitNewGuess(currentInput);
       // return to avoid hacky way of updating user input live.
       return;
     }
     else {
-      console.log("word too short to submit");
+      if(currentInput.length === 5){
+        console.log("invalid word")
+      }
+      else {
+        console.log("word too short to submit");
+      }
     }
   }
   else {
@@ -324,18 +348,17 @@ const guessInputUpdateListener = e =>  {
     }
     if(key === 'Backspace' || key === '←'){
       if(currentInput.length){
-        currentInput = currentInput.slice(0, -1);
+        updateInputString(currentInput.slice(0, -1));
       }
     }
     else {
       if(currentInput.length < 5){
-        currentInput = currentInput.concat(key);
+        updateInputString(currentInput.concat(key));
       }
       else {
-        currentInput = currentInput.slice(0, -1).concat(key);
+        updateInputString(currentInput.slice(0, -1).concat(key));
       }
     }
-    renderGuessListRowInput(currentInput);
   }
 }
 
@@ -586,6 +609,8 @@ const renderChallengeResultsScreen = () => {
     <button id="gloat-share-button">Share Challenge Results</button>
   `
   gloatContainer.innerHTML = innerHTML;
+  // Hide share button until it's working
+  gloatContainer.querySelector('#gloat-share-button').style.disply = 'none';
 }
 
 const openChallengeResultsScreen = () => {
@@ -619,12 +644,14 @@ const generateNewSecret = () => {
 
 const newGame = (challengeData) => {
   // TODO: Move all visual gamestate clearing into function?
+  renderGuessListRows();
   document.body.dataset.gamestate = undefined;
   challengeButton.style.display = 'none';
   keyboardRoot.style.display = 'flex';
   // challengeButton.disabled = true;
   guesses = [];
-  currentInput = '';
+  updateInputString('')
+  // currentInput = '';
   usedLetters = new Set();
   exactMatches = new Set();
   isFinished = false;
@@ -632,7 +659,6 @@ const newGame = (challengeData) => {
   guessCount = 0;
   secret = challengeData?.secret || generateNewSecret();
   // TODO: Load saved preferences for theme
-  renderGuessListRows();
   teardownChallengeMode();
   startChallengeMode(challengeData);
   renderRecentlySeenWordsList();
@@ -682,6 +708,21 @@ const gameOver = () => {
 
 onLoad();
 
+// const victorySettings = {
+//   // parent: document.documentElement,
+//   dx: 0,
+//   dy: 0.4,
+//   framerate: 35,
+//   color: '#46f40e',
+//   density: 300,
+//   radius: 10,
+//   halflife: 100,
+//   transparent: false,
+//   backgroundColor: '#0d6540',
+// }
+
+// const field = bokehfy(victorySettings)
+
 // 134 from skin dc
 
 // TODO:
@@ -715,7 +756,14 @@ onLoad();
 // ++  secret and not assumed one ass is in mvp
 // ++ BUG input not getting cleared on new game
 // ++ BUG Local storage recording duplicate words
-// Remove code for recent words
+// Highlight invalid words and refuse submission (saves having to show an error)
+// MAYBE Prevent duplicate guesses?
+// implement hard mode (implement modes in general (big refactor coming))
+// Finish sharing logic (ugh)
+// Share gloat screen (screenshot and share with native api or render simalacurum with canvas?)
+// Animate keyboard
+// MAYBE Live mode? (Nah, servers needed (or just p2p, but ugh))
+// Remove code for recent words (track separately from liist of used words (to support duplicates))
 // Persist gamestate to sessionstorage to avoid accidental refreshes
 // MAYBE Use a UUID for identifiers to help with name collisions (two people named John) if trying to institute a
 //   barebones challenge history (local storage only)
