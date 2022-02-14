@@ -48,6 +48,22 @@ let activeAnimationQueue = new Set();
 const encodeString = btoa;
 const decodeString = atob;
 
+// Until I have a gamestate object this will help logging (without using debugger)
+const logState = () => {
+  console.debug({
+    currentInput,
+    isCurrentInputValid,
+    guesses,
+    usedLetters,
+    exactMatches,
+    secret,
+    guessCount,
+    isFinished,
+    hasWon,
+    inputDisabled,
+  })
+}
+
 // TODO: Allow for function overloading for string or arrays for both
 const wordCheck = (guess, secret) => {
   const guessList = guess.toLowerCase().split('');
