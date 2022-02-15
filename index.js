@@ -5,6 +5,7 @@ const KEYBOARD_LAYOUT = [
   ['↵', 'z','x','c','v','b','n','m', '←'],
 ];
 
+const SS_GAME_STATE_BACKUP_KEY = 'SS_GAME_STATE_BACKUP';
 const LS_GAME_DATA_KEY = 'LS_GAME_DATA';
 const LS_RAW_USER_DATA_KEY = 'LS_RAW_USER_DATA';
 const LS_SETTINGS_DATA_KEY = 'LS_SETTINGS_DATA';
@@ -37,7 +38,7 @@ let challengeData;
 let inputDisabled = false;
 
 // To be used for capturing multiple vectors of user input and for submitting new guesses.
-let currentInput = '';
+let currentInput = [];
 let isCurrentInputValid = false;
 let activeAnimationQueue = new Set();
 /**
@@ -163,6 +164,47 @@ const generateChallengerDataString = () => {
   return encodedString;
 }
 
+// TODO: This is a good argument for keeping game state in a single object/store. Easier to serialize, deserialize
+// For now I'm going to have to add and update all values by name.
+// I'll start moving that way by at least sharing an object with all the necessary properties
+// TODO: Saving an in progress challenge will be trickier with the querystring.
+const clearGameStateBackup = () => {
+  sessionStorage.removeItem(SS_GAME_STATE_BACKUP_KEY);
+}
+
+const backupGameState = () => {
+  const gameState = {
+    currentInput,
+    guesses,
+    usedLetters: Array.from(usedLetters),
+    exactMatches: Array.from(exactMatches),
+    hasWon,
+    guessCount,
+    secret
+  }
+  sessionStorage.setItem(SS_GAME_STATE_BACKUP_KEY, JSON.stringify(gameState));
+}
+
+const restoreGameState = (challengeData) => {
+  let backupGameState = {};
+  const backupGameStateString = sessionStorage.getItem(SS_GAME_STATE_BACKUP_KEY);
+  if(backupGameStateString){
+    backupGameState = JSON.parse(backupGameStateString);
+  }
+  // currentInput = '';
+  guesses = backupGameState?.guesses ?? [];
+  usedLetters = new Set(backupGameState?.usedLetters ?? []);
+  exactMatches = new Set(backupGameState?.exactMatches ?? []);
+  hasWon = backupGameState?.hasWon ?? false;
+  guessCount = backupGameState?.guessCount ?? 0;
+  // TODO CHALLENGE DATA
+  secret = backupGameState?.secret ?? (challengeData?.secret || generateNewSecret());
+  updateCurrentInput(backupGameState?.currentInput || []);
+
+  // Return whether restoring from a backup or not;
+  return !!backupGameStateString;
+}
+
 /**
  * RENDERING
  */
@@ -227,11 +269,11 @@ const renderGuessListRows = () => {
 `).join('');
 }
 
-const renderGuessListRowInput = (guessInput) => {
+const renderGuessListRowInput = (guessInput, rowIndex) => {
   // We only want to color input as invalid when it's five letters
   // TODO: Have function return tile nodes so logic like this can be moved out?
   const isValid = guessInput.length !== 5 || determineIsValidGuess(guessInput);
-  const rowRootElement = guessListRootElement.querySelector(`div.guessWord[data-index="${guessCount}"]`)
+  const rowRootElement = guessListRootElement.querySelector(`div.guessWord[data-index="${rowIndex}"]`)
   rowRootElement.dataset.valid = isValid;
   const tiles = Array.from(rowRootElement.querySelectorAll('span.guessLetter'));
   for(let i = 0; i < 5; i++){
@@ -239,8 +281,8 @@ const renderGuessListRowInput = (guessInput) => {
   }
 } 
 
-const renderGuessListRowScore = (guess) => {
-  const rowRootElement = guessListRootElement.querySelector(`div.guessWord[data-index="${guessCount}"]`)
+const renderGuessListRowScore = (guess, rowIndex) => {
+  const rowRootElement = guessListRootElement.querySelector(`div.guessWord[data-index="${rowIndex}"]`)
   const tiles = Array.from(rowRootElement.querySelectorAll('span.guessLetter'));
   const promises = [];
   // Make foreach.
@@ -285,7 +327,12 @@ const renderRecentlySeenWordsList = () => {
   recentWordsListRoot.innerHTML = pastWords.slice(0, 10).map((word) => `<li class="recentWord">${word}</li>`).join('');
 }
 
-const determineIsValidGuess = (guess) => SECRET_WORD_LIST.includes(guess.toLowerCase()) || ACCEPTABLE_WORD_LIST.includes(guess.toLowerCase());
+const determineIsValidGuess = (guessArr) => {
+  // TODO: Handle string or array
+  const guessStr = guessArr.join('');
+  return SECRET_WORD_LIST.includes(guessStr.toLowerCase()) || ACCEPTABLE_WORD_LIST.includes(guessStr.toLowerCase());
+}
+
 
 const submitNewGuess = async (newGuessWord) => {
   if(isFinished){
@@ -310,10 +357,11 @@ const submitNewGuess = async (newGuessWord) => {
   // Set a flag for the listener
   // TODO visually disable keyboard
   inputDisabled = true;
-  await renderGuessListRowScore(guessObject);
+  await renderGuessListRowScore(guessObject, guessCount);
   guessCount++;
-  currentInput = '';
+  updateCurrentInput([]);
   inputDisabled = false;
+  backupGameState();
   if(guessObject.isCorrect || guessCount > 5){
     gameOver();
     // e.target.elements.guess.disabled = true;
@@ -331,13 +379,16 @@ const submitNewGuess = async (newGuessWord) => {
   refresh();
 }
 
-const updateInputString = (inputString) => {
+const updateCurrentInput = (inputArray) => {
+  if(!inputArray){
+    throw new Error('updateCurrentInput requires a string array as parameter')
+  }
   // Besides adding or removing chars to the input string, we can use this opportunity to
   // determine whether a word is valid (when 5 chars long) and if so, conditionally change color and
   // disable submit button.
 
   // CLEAR
-  currentInput = inputString;
+  currentInput = inputArray;
   if(currentInput.length === 5){
     // TODO Check word and determine if word is false
     isCurrentInputValid = determineIsValidGuess(currentInput);
@@ -345,7 +396,7 @@ const updateInputString = (inputString) => {
   else {
     isCurrentInputValid = false;
   }
-  renderGuessListRowInput(currentInput);
+  renderGuessListRowInput(currentInput, guessCount);
 }
 
 const guessInputUpdateListener = e =>  {
@@ -361,7 +412,7 @@ const guessInputUpdateListener = e =>  {
       return;
     }
     if(isCurrentInputValid){
-      submitNewGuess(currentInput);
+      submitNewGuess(currentInput.join(''));
       // return to avoid hacky way of updating user input live.
       return;
     }
@@ -381,15 +432,15 @@ const guessInputUpdateListener = e =>  {
     }
     if(key === 'Backspace' || key === '←'){
       if(currentInput.length){
-        updateInputString(currentInput.slice(0, -1));
+        updateCurrentInput(currentInput.slice(0, -1));
       }
     }
     else {
       if(currentInput.length < 5){
-        updateInputString(currentInput.concat(key));
+        updateCurrentInput([...currentInput, key ]);
       }
       else {
-        updateInputString(currentInput.slice(0, -1).concat(key));
+        updateCurrentInput([...currentInput.slice(0, -1), key]);
       }
     }
   }
@@ -682,19 +733,22 @@ const newGame = (challengeData) => {
   challengeButton.style.display = 'none';
   keyboardRoot.style.display = 'flex';
   // challengeButton.disabled = true;
-  // currentInput = '';
-  guesses = [];
-  usedLetters = new Set();
-  exactMatches = new Set();
   isFinished = false;
-  hasWon = false;
-  guessCount = 0;
-  secret = challengeData?.secret || generateNewSecret();
-  updateInputString('')
+  const isRestoring = restoreGameState(challengeData);
+  if(isRestoring){
+    // Without awaiting as initially intended, disbaling input here is
+    // pretty meaningless. (I believe)
+    inputDisabled = true;
+    for(let i = 0; i < guesses.length; i++){
+      renderGuessListRowInput(guesses[i].charArray, i);
+      renderGuessListRowScore(guesses[i], i);
+    }
+    inputDisabled = false;
+  }
   // TODO: Load saved preferences for theme
   teardownChallengeMode();
   startChallengeMode(challengeData);
-  renderRecentlySeenWordsList();
+  // renderRecentlySeenWordsList();
   refresh();
   console.debug(secret);
 }
@@ -703,7 +757,11 @@ const onLoad = ()=> {
   document.addEventListener("guess-input-update", guessInputUpdateListener);
   document.addEventListener('keyup', keypressListener);
   keyboardRoot.addEventListener("click", touchListener);
-  newGameButton.addEventListener('click', () => newGame())
+  newGameButton.addEventListener('click', () => {
+    // Ensure we don't refresh a half finished game
+    clearGameStateBackup();
+    newGame();
+  })
   resetButton.addEventListener('click', () => localStorage.clear());
   challengeButton.addEventListener('click', () => {
     if(isFinished){
@@ -727,6 +785,7 @@ const onLoad = ()=> {
 
 const gameOver = () => {
   isFinished = true;
+  clearGameStateBackup();
   generateChallengerDataString();
   keyboardRoot.style.display = 'none';
   // challengeButton.disabled = false;
@@ -790,14 +849,15 @@ onLoad();
 // ++ BUG input not getting cleared on new game
 // ++ BUG Local storage recording duplicate words
 // ++ Highlight invalid words and refuse submission (saves having to show an error)
+// ++ Animate keyboard
+// Persist gamestate to sessionstorage to avoid accidental refreshes
+// BUG being able to submt empty guesses
 // MAYBE Prevent duplicate guesses?
 // implement hard mode (implement modes in general (big refactor coming))
 // Finish sharing logic (ugh)
 // Share gloat screen (screenshot and share with native api or render simalacurum with canvas?)
-// Animate keyboard
 // MAYBE Live mode? (Nah, servers needed (or just p2p, but ugh))
 // Remove code for recent words (track separately from liist of used words (to support duplicates))
-// Persist gamestate to sessionstorage to avoid accidental refreshes
 // MAYBE Use a UUID for identifiers to help with name collisions (two people named John) if trying to institute a
 //   barebones challenge history (local storage only)
 // Switch success state colors from background to buttons
