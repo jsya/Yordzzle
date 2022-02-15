@@ -274,6 +274,10 @@ const renderGuessListRowInput = (guessInput, rowIndex) => {
   // TODO: Have function return tile nodes so logic like this can be moved out?
   const isValid = guessInput.length !== 5 || determineIsValidGuess(guessInput);
   const rowRootElement = guessListRootElement.querySelector(`div.guessWord[data-index="${rowIndex}"]`)
+  if(!rowRootElement){
+    // We should not be looking for rows not in the DOM.
+    throw new Error('Cannot find row root element for index ' + rowIndex);
+  }
   rowRootElement.dataset.valid = isValid;
   const tiles = Array.from(rowRootElement.querySelectorAll('span.guessLetter'));
   for(let i = 0; i < 5; i++){
@@ -359,9 +363,7 @@ const submitNewGuess = async (newGuessWord) => {
   inputDisabled = true;
   await renderGuessListRowScore(guessObject, guessCount);
   guessCount++;
-  updateCurrentInput([]);
   inputDisabled = false;
-  backupGameState();
   if(guessObject.isCorrect || guessCount > 5){
     gameOver();
     // e.target.elements.guess.disabled = true;
@@ -375,7 +377,10 @@ const submitNewGuess = async (newGuessWord) => {
       document.body.dataset.gamestate = "failure";
     }
   }
-  
+  else {
+    updateCurrentInput([]);
+    backupGameState();
+  }
   refresh();
 }
 
@@ -850,8 +855,9 @@ onLoad();
 // ++ BUG Local storage recording duplicate words
 // ++ Highlight invalid words and refuse submission (saves having to show an error)
 // ++ Animate keyboard
-// Persist gamestate to sessionstorage to avoid accidental refreshes
-// BUG being able to submt empty guesses
+// ++ Persist gamestate to sessionstorage to avoid accidental refreshes
+// ++ BUG being able to submt empty guesses
+// BUG not triggering isfinished on sixth guess
 // MAYBE Prevent duplicate guesses?
 // implement hard mode (implement modes in general (big refactor coming))
 // Finish sharing logic (ugh)
