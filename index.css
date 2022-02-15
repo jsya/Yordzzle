@@ -282,7 +282,7 @@ main {
   }
 }
 
-.gloat-button, .challenge-button {
+.gloat-button, .challenge-button, .newGame-button {
   display: none;
   background: var(--secondary-color-full);
   color: white;
@@ -293,6 +293,16 @@ main {
   width: 280px;
   font-weight: 400;
   letter-spacing: .2rem;
+}
+
+body[data-gamestate="success"] .challenge-button, body[data-gamestate="success"] .newGame-button
+{
+  background: var(--secondary-color-full);
+}
+
+body[data-gamestate="failure"] .challenge-button, body[data-gamestate="failure"] .newGame-button
+{
+  background: #b46a0f;
 }
 
 .gloat-button {

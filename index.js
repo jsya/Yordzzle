@@ -736,6 +736,7 @@ const newGame = (challengeData) => {
   renderGuessListRows();
   document.body.dataset.gamestate = undefined;
   challengeButton.style.display = 'none';
+  newGameButton.style.display = 'none';
   keyboardRoot.style.display = 'flex';
   // challengeButton.disabled = true;
   isFinished = false;
@@ -793,8 +794,8 @@ const gameOver = () => {
   clearGameStateBackup();
   generateChallengerDataString();
   keyboardRoot.style.display = 'none';
-  // challengeButton.disabled = false;
   challengeButton.style.display = 'block';
+  newGameButton.style.display = 'block';
   if(challengeData){
     // TODO: Listen for animation end.
     openChallengeResultsScreen();
@@ -844,6 +845,7 @@ onLoad();
 // ++ Update to pass challenge object instead of discrete keys
 // ++ Generate gloat screen with all words shown instead of just score graphic
 // ++ Reveal correct word on failure
+// ++ BUG gloat button showing even when no challenge.
 // ++ Pause keylistener and disable keybaord while letters are being revealed
 // ++ Automatically show challenge results on completion
 // ++ Restore focus to window after interacting with button
@@ -857,7 +859,10 @@ onLoad();
 // ++ Animate keyboard
 // ++ Persist gamestate to sessionstorage to avoid accidental refreshes
 // ++ BUG being able to submt empty guesses
-// BUG not triggering isfinished on sixth guess
+// ++ BUG not triggering isfinished on sixth guess
+// ++ New game button on game end.
+// Responsive grid (to ensure keyboard size). Aspect-ratio not working, need JS solution
+// LOGO (can be new game link as well, or hide new game in menu)
 // MAYBE Prevent duplicate guesses?
 // implement hard mode (implement modes in general (big refactor coming))
 // Finish sharing logic (ugh)
@@ -876,11 +881,11 @@ onLoad();
 // - Favorite first word
 // - Favorite words
 // - Graph of previous wins
+// - Track scoring of each word to see what are most successful words and how often used
 // ...
 // Move statistics into modal
 // Improve victory and defeat animations
 // add pwa support for iphone
 // Link to original
-// BUG gloat button showing even when no challenge.
 
 // lovejoy
