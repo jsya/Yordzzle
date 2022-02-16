@@ -644,15 +644,15 @@ const shareChallengeLink = () => {
   let shareObject;
   if(hasWon === true) {
     shareObject = {
-      title: 'Can you beat my score on Yordle?',
-      text: 'Can you beat my score on Yordle?\n\n' + resultGraphic + '\n' + challengeURL,
+      title: 'Can you beat my score on Yordzzle?',
+      text: 'Can you beat my score on Yordzzle?\n\n' + resultGraphic + '\n' + challengeURL,
       url: challengeURL
     }
   }
   else {
     shareObject = {
-      title: 'Can you succeed where I failed on Yordle?',
-      text: 'Can you succeed where I failed on Yordle?\n\n' + resultGraphic + '\n' + challengeURL + '\n',
+      title: 'Can you succeed where I failed on Yordzzle?',
+      text: 'Can you succeed where I failed on Yordzzle?\n\n' + resultGraphic + '\n' + challengeURL + '\n',
       url: challengeURL
     }
   } 
