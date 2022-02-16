@@ -213,12 +213,36 @@ const restoreGameState = (challengeData) => {
 // static html which will require changing the order of operations again.
 // NOTE: This will get trickier with other game modes (namely dordle style).
 // Cross that bridge later.
-const calculateResponsiveSizes = () => {
+const onResize = () => {
   // Need to find size of the guesswordlist container. Figure out the maximum allowed size of the squares to fit
   // and set those.
-  const onResize = () => {}
-  onResize();
-  window.addEventListener('resize', onResize);
+  // NOTE: For now, we're going to be very unresponsive and usem fixed known values.
+  // Changing the CSS will break this, and it's not a great way to go, but it will hopefully suffice for MVP
+  // and some time after so that I can stop being annoyed about this one particular problem. :)
+  const calculateResponsiveSizes = () => {
+    // const HEADER_HEIGHT = 40;
+    // const KEYBOARD_HEIGHT = 200 + 8 + 8;
+    // const remainingHeight = document.documentElement.clientHeight - HEADER_HEIGHT - KEYBOARD_HEIGHT - (TILE_MARGIN * 6);
+    const TILE_MARGIN = 2;
+    const containerHeight = guessListRootElement.clientHeight;
+    const containerWidth = document.documentElement.clientWidth;
+    // We need to make sure we use the smaller of the two values for determining max allowable size.
+    // But the caveat is that even though tiles are squares, the full grid is not.
+    const maximumTileHeight = Math.floor((containerHeight / 6) - (6 * TILE_MARGIN));
+    const maximumTileWidth = Math.floor((containerWidth / 5) - (5 * TILE_MARGIN));
+    const maximumTileSide = Math.min(maximumTileHeight, maximumTileWidth)
+    // TODO: Should we manipulate the CSSOM rules directly? For now, going to be manual and simply update the
+    // style properties on each element.
+    // TODO: Have to make reveal row hidden instead of dynamically inserted. This is a bug until then.
+    // TODO: This will have to run after the tiles are first rendered for now (since they are still dynamic)
+    const tiles = Array.from(guessListRootElement.querySelectorAll('span[data-type="letter-tile"]'));
+    tiles.forEach(tile => {
+      tile.style.width = `${maximumTileSide}px`;
+    })
+  }
+
+  calculateResponsiveSizes();
+
 }
 
 const updateKeyboardState = () => {
@@ -271,7 +295,7 @@ const renderGuessListRows = () => {
   // rerendering the whole subtree)
   guessListRootElement.innerHTML = new Array(6).fill(null).map((_, i) => `
   <div class="guessWord" data-index="${i}">${
-    new Array(5).fill(null).map(_ => `<span class="guessLetter"></span>`).join('')
+    new Array(5).fill(null).map(_ => `<span class="guessLetter" data-type="letter-tile"></span>`).join('')
   }</div>
 `).join('');
 }
@@ -324,7 +348,7 @@ const renderSecretReveal = (secret) => {
   const row = document.createElement('div');
   row.classList.add('guessWord');
   row.id = 'secret_reveal_row';
-  row.innerHTML = secret.split('').map(char => `<span class="guessLetter">${char}</span>`).join('')
+  row.innerHTML = secret.split('').map(char => `<span class="guessLetter" data-type="letter-tile">${char}</span>`).join('')
   guessListRootElement.appendChild(row);
 }
 
@@ -742,6 +766,8 @@ const generateNewSecret = () => {
 const newGame = (challengeData) => {
   // TODO: Move all visual gamestate clearing into function?
   renderGuessListRows();
+  onResize();
+
   document.body.dataset.gamestate = undefined;
   challengeButton.style.display = 'none';
   newGameButton.style.display = 'none';
@@ -767,8 +793,9 @@ const newGame = (challengeData) => {
   console.debug(secret);
 }
 
-const onLoad = ()=> {
+const onLoad = () => {
   // 1. Attach listeners
+  window.addEventListener('resize', onResize);
   document.addEventListener("guess-input-update", guessInputUpdateListener);
   document.addEventListener('keyup', keypressListener);
   keyboardRoot.addEventListener("click", touchListener);
