@@ -177,6 +177,10 @@ main {
   border: 3px solid var(--primary-color-half);
 }
 
+#secret_reveal_row {
+  display: none;
+}
+
 #secret_reveal_row .guessLetter {
   background: var(--primary-color-failure);
   border: .1rem solid var(--secondary-color-failure);

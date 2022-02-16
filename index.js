@@ -288,16 +288,26 @@ const updateKeyboardKeyState = (keyChar, classes = []) => {
   }
 }
 
+// NOTE: Don't need to remove since the entire root element is getting blown out on new game.
+const revealSecretWord = (secret) => {
+  const secretRowRoot = guessListRootElement.querySelector('#secret_reveal_row');
+  const tiles = Array.from(secretRowRoot.querySelectorAll('span[data-type="letter-tile"]'))
+  tiles.forEach((tile, i) => tile.innerText = secret[i]);
+  secretRowRoot.style.display = 'flex';
+}
+
 const renderGuessListRows = () => {
   // rather than iterating through and clearing all the updated attributes, if we create it from whole
   // cloth on each new game we save that effort and still obviate the issue with animations flickering on
   // each render update (because unlike React, we werent only updating nodes that changed, we were
   // rerendering the whole subtree)
-  guessListRootElement.innerHTML = new Array(6).fill(null).map((_, i) => `
-  <div class="guessWord" data-index="${i}">${
-    new Array(5).fill(null).map(_ => `<span class="guessLetter" data-type="letter-tile"></span>`).join('')
-  }</div>
-`).join('');
+  const guessRows = new Array(6).fill(null).map((_, i) => `
+    <div class="guessWord" data-index="${i}">${
+        new Array(5).fill(null).map(_ => `<span class="guessLetter" data-type="letter-tile"></span>`).join('')
+      }</div>
+    `).join('');
+  const secretRow = `<div id="secret_reveal_row" class="guessWord">${new Array(5).fill(null).map(_ => `<span class="guessLetter" data-type="letter-tile"></span>`).join('')}</div>`
+  guessListRootElement.innerHTML = guessRows + secretRow;
 }
 
 const renderGuessListRowInput = (guessInput, rowIndex) => {
@@ -341,15 +351,6 @@ const renderGuessListRowScore = (guess, rowIndex) => {
     tiles[i].classList.add(scoreClass);
   }
   return Promise.all(promises);
-}
-
-// NOTE: Don't need tp remove since the entire root element is getting blown out on new game.
-const renderSecretReveal = (secret) => {
-  const row = document.createElement('div');
-  row.classList.add('guessWord');
-  row.id = 'secret_reveal_row';
-  row.innerHTML = secret.split('').map(char => `<span class="guessLetter" data-type="letter-tile">${char}</span>`).join('')
-  guessListRootElement.appendChild(row);
 }
 
 const renderRecentlySeenWordsList = () => {
@@ -404,7 +405,7 @@ const submitNewGuess = async (newGuessWord) => {
     }
     else {
       hasWon = false;
-      renderSecretReveal(secret);
+      revealSecretWord(secret);
       document.body.dataset.gamestate = "failure";
     }
   }
