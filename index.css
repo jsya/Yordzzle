@@ -413,6 +413,21 @@ header h1 span {
   font-size: .7em;
 }
 
+.stats-screen-open-button {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
+.stats-screen-open-button svg {
+  height: 25px;
+  width: 25px;
+}
+
+.stats-screen-open-button svg path {
+  fill: var(--tile-text-primary);
+}
+
 header .options-menu-button {
   position: absolute;
   top: 5px;
@@ -523,28 +538,28 @@ button.modal-close {
 }
 
 .modal-container[data-type="stats"] .stats-container {
-  display: block;
+  display: flex;
 }
 
 .modal-container[data-type="options"] .options-container {
   display: flex;
 }
 
-.options-container {
+.modal-container .row {
+  display: flex;
+}
+
+.modal-container h2 {
+ margin: 10px 0;
+ font-size: 1.5rem;
+ letter-spacing: .1rem;
+}
+
+.options-container, .stats-container {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
   flex: 1;
-}
-
-.options-container .row {
-  display: flex;
-}
-
-.options-container h2 {
- margin: 10px 0;
- font-size: 1.5rem;
- letter-spacing: .1rem;
 }
 
 .gloat-container {

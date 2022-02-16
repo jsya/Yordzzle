@@ -13,6 +13,7 @@ const QUERYSTRING_CHALLENGE_KEY = 'challenge';
 
 const keyboardRoot = document.getElementById('keyboard');
 const guessListRootElement = document.getElementById("guess_list_root");
+const statsScreenOpenButton = document.getElementById("stats_screen_open_button");
 const optionsMenuButton = document.getElementById("options_menu_button");
 const newGameButton = document.getElementById("new_game_button");
 const challengeButton = document.getElementById("challenge_button");
@@ -815,6 +816,10 @@ const onLoad = () => {
   document.addEventListener("guess-input-update", guessInputUpdateListener);
   document.addEventListener('keyup', keypressListener);
   keyboardRoot.addEventListener("click", touchListener);
+  statsScreenOpenButton.addEventListener('click', () => {
+    modal.dataset.type = "stats";
+    document.documentElement.dataset.modal = true;
+  })
   optionsMenuButton.addEventListener('click', () => {
     modal.dataset.type = "options";
     document.documentElement.dataset.modal = true;
@@ -918,8 +923,11 @@ onLoad();
 // ++ Responsive grid (to ensure keyboard size). Aspect-ratio not working, need JS solution
 // ++ LOGO (can be new game link as well, or hide new game in menu)
 // ++ BUG Tiles resizing before keyboard rerendered (on new game) causing them to occupy more space. (Actually, the right amount, which is odd)
-// Reset current game button
-// Move all styles to variables.
+// ++ Reset current game button
+// ++ Move all styles to variables.
+// Add stats menu
+// Move statistics into modal
+// Don't allow long press text highlighting (make everything unselectable)
 // Add restyling options
 // Confetti on victory (use library https://github.com/catdad/canvas-confetti, later implement myself)
 // Options menu:
@@ -950,7 +958,6 @@ onLoad();
 // - Graph of previous wins
 // - Track scoring of each word to see what are most successful words and how often used
 // ...
-// Move statistics into modal
 // Improve victory and defeat animations
 // add pwa support for iphone
 // Link to original
