@@ -314,8 +314,8 @@ body[data-gamestate="failure"] .challenge-button, body[data-gamestate="failure"]
 
 .keyboard {
   flex: 1;
-  padding: 20px 0;
-  max-width: 90%;
+  padding: 8px 0;
+  max-width: 95%;
   min-height: 200px;
   display: flex;
   flex-direction: column;
