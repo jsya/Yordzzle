@@ -21,6 +21,8 @@
   padding: 0;
   font-family: 'Calibri', sans-serif;
   touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /**

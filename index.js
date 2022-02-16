@@ -939,7 +939,8 @@ onLoad();
 // ++ Move all styles to variables.
 // ++ Add stats menu
 // ++ Move statistics into modal
-// Track last 10 seen words for stats screen
+// ++ Track last 10 seen words for stats screen
+// Save to homepage to remove bottom address bar.
 // Don't allow long press text highlighting (make everything unselectable)
 // Add restyling options
 // Confetti on victory (use library https://github.com/catdad/canvas-confetti, later implement myself)
