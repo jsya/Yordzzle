@@ -1,9 +1,9 @@
 const VERSION = 0.1;
-const KEYBOARD_LAYOUT = [
-  ['q','w','e','r','t','y','u','i','o','p'],
-  ['a','s','d','f','g','h','j','k','l'],
-  ['↵', 'z','x','c','v','b','n','m', '←'],
-];
+// const KEYBOARD_LAYOUT = [
+//   ['q','w','e','r','t','y','u','i','o','p'],
+//   ['a','s','d','f','g','h','j','k','l'],
+//   ['↵', 'z','x','c','v','b','n','m', '←'],
+// ];
 
 const SS_GAME_STATE_BACKUP_KEY = 'SS_GAME_STATE_BACKUP';
 const LS_GAME_DATA_KEY = 'LS_GAME_DATA';
@@ -209,10 +209,19 @@ const restoreGameState = (challengeData) => {
 /**
  * RENDERING
  */
+// TODO: Have to change this to fire after keyboard keys are drawn. In the future, I'd like to make that element
+// static html which will require changing the order of operations again.
+// NOTE: This will get trickier with other game modes (namely dordle style).
+// Cross that bridge later.
+const calculateResponsiveSizes = () => {
+  // Need to find size of the guesswordlist container. Figure out the maximum allowed size of the squares to fit
+  // and set those.
+  const onResize = () => {}
+  onResize();
+  window.addEventListener('resize', onResize);
+}
 
-const renderUsedLetters = () => {
-  // Keyboard logic, if a letter has been found correctly at least once, even if only partial correct
-  // in a separate instance in the same word, color correct. If only partial, color partial.
+const updateKeyboardState = () => {
   const getKeyColor = char => {
     let color = '';
     if(usedLetters.has(char)){
@@ -226,21 +235,18 @@ const renderUsedLetters = () => {
     }
     return color;
   };
-
-  keyboardRoot.innerHTML = `
-    ${
-      KEYBOARD_LAYOUT.map(row => `
-        <div class="keyboard-row">
-          ${ 
-            row.map(key => `
-              <button class="keyboard-key ${getKeyColor(key)}" data-key="${key}">${key}</button>
-            `).join('')
-          }
-        </div>
-      `).join("")
+  const keys = Array.from(keyboardRoot.querySelectorAll(`button[data-key]`));
+  keys.forEach((key) => {
+    const color = getKeyColor(key.dataset.key);
+    if(color){
+      key.classList.add(color);
     }
-  `;
-};
+    else {
+      // In case we need to purge a letter's highlighting (is this a real case??)
+      key.classList.remove('used', 'half', 'correct');
+    }
+  })
+}
 
 const updateKeyboardKeyState = (keyChar, classes = []) => {
   const key = keyboardRoot.querySelector(`button[data-key="${keyChar}"]`);
@@ -482,7 +488,8 @@ const touchListener =  e => {
 
 // TODO: Make static html as well
 const refresh = () => {
-  renderUsedLetters();
+  updateKeyboardState();
+  // renderKeyboard();
 }
 
 const getHistoricalGameData = () => {
@@ -761,6 +768,7 @@ const newGame = (challengeData) => {
 }
 
 const onLoad = ()=> {
+  // 1. Attach listeners
   document.addEventListener("guess-input-update", guessInputUpdateListener);
   document.addEventListener('keyup', keypressListener);
   keyboardRoot.addEventListener("click", touchListener);
@@ -866,9 +874,14 @@ onLoad();
 // ++ BUG being able to submt empty guesses
 // ++ BUG not triggering isfinished on sixth guess
 // ++ New game button on game end.
-// Confetti on victory (use library, later implement myself)
+// Confetti on victory (use library https://github.com/catdad/canvas-confetti, later implement myself)
 // Responsive grid (to ensure keyboard size). Aspect-ratio not working, need JS solution
-// Reset game option
+// Options menu:
+// -- Dark Mode (autodetect?)
+// -- Swap keyboard layout
+// -- Reset game
+// -- Hard mode? Should game modes be a separate menu? Methinks yeah.
+// -- Credit original 
 // Modes
 // -- Hard mode
 // -- Doordle mode (two words at once)
