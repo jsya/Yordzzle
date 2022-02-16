@@ -238,6 +238,7 @@ const onResize = () => {
     const tiles = Array.from(guessListRootElement.querySelectorAll('span[data-type="letter-tile"]'));
     tiles.forEach(tile => {
       tile.style.width = `${maximumTileSide}px`;
+      tile.style.height = `${maximumTileSide}px`;
     })
   }
 
