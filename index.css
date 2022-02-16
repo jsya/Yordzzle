@@ -127,6 +127,8 @@ main {
   justify-content: space-between;
   width: 100%;
   height: calc(100% - 50px);
+  padding-left: 10px;
+  padding-right: 10px;
   margin-bottom: 20px;
 }
 
@@ -141,6 +143,7 @@ main {
   font-weight: 800;
   font-size: 2rem;
   flex: 1;
+  margin: 10px 0;
 }
 
 @media screen and (min-width: 450px) {

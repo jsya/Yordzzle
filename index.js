@@ -223,12 +223,15 @@ const onResize = () => {
   // and some time after so that I can stop being annoyed about this one particular problem. :)
   const calculateResponsiveSizes = () => {
     const TILE_MARGIN = 2;
+    // Could get padding dynamically with computed styles. But for now, let's just be declarative again.
+    const MAIN_PADDING = 20;
     const containerHeight = guessListRootElement.clientHeight;
     const containerWidth = document.documentElement.clientWidth;
     // We need to make sure we use the smaller of the two values for determining max allowable size.
     // But the caveat is that even though tiles are squares, the full grid is not.
-    const maximumTileHeight = Math.floor((containerHeight / 6) - (6 * TILE_MARGIN));
-    const maximumTileWidth = Math.floor((containerWidth / 5) - (5 * TILE_MARGIN));
+    const maximumTileHeight = Math.floor((containerHeight - 6 * TILE_MARGIN) / 6);
+    // NOTE: Width here is too much, even adding a margin 
+    const maximumTileWidth = Math.floor((containerWidth - (5 * TILE_MARGIN) - MAIN_PADDING) / 5);
     const maximumTileSide = Math.min(maximumTileHeight, maximumTileWidth)
     // TODO: Should we manipulate the CSSOM rules directly? For now, going to be manual and simply update the
     // style properties on each element.
