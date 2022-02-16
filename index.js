@@ -16,7 +16,8 @@ const guessListRootElement = document.getElementById("guess_list_root");
 const optionsMenuButton = document.getElementById("options_menu_button");
 const newGameButton = document.getElementById("new_game_button");
 const challengeButton = document.getElementById("challenge_button");
-const resetButton = document.getElementById('reset_all');
+const resetGameButton = document.getElementById("reset_game");
+const resetDataButton = document.getElementById('reset_all');
 const modalContainer = document.getElementById('modal');
 const modalCloseButton = document.getElementById('modal_close_button');
 const gloatContainer = document.getElementById('gloat_container');
@@ -515,6 +516,12 @@ const touchListener =  e => {
   return false;
 }
 
+const newGameButtonListener = () => {
+  // Ensure we don't refresh a half finished game
+  clearGameStateBackup();
+  newGame();
+}
+
 // TODO: Make static html as well
 const refresh = () => {
   updateKeyboardState();
@@ -774,7 +781,7 @@ const newGame = (challengeData) => {
   renderGuessListRows();
   // NOTE: If I made guestlistrows static and only hide/show dynamically, then we could run the resize listener
   // immediately.
-  
+  document.documentElement.dataset.modal = false;
   document.body.dataset.gamestate = undefined;
   challengeButton.style.display = 'none';
   newGameButton.style.display = 'none';
@@ -808,16 +815,13 @@ const onLoad = () => {
   document.addEventListener("guess-input-update", guessInputUpdateListener);
   document.addEventListener('keyup', keypressListener);
   keyboardRoot.addEventListener("click", touchListener);
-  newGameButton.addEventListener('click', () => {
-    // Ensure we don't refresh a half finished game
-    clearGameStateBackup();
-    newGame();
-  })
   optionsMenuButton.addEventListener('click', () => {
     modal.dataset.type = "options";
     document.documentElement.dataset.modal = true;
   });
-  resetButton.addEventListener('click', () => localStorage.clear());
+  newGameButton.addEventListener('click', newGameButtonListener)
+  resetGameButton.addEventListener('click', newGameButtonListener)
+  resetDataButton.addEventListener('click', () => localStorage.clear());
   challengeButton.addEventListener('click', () => {
     if(isFinished){
       shareChallengeLink();
@@ -914,6 +918,7 @@ onLoad();
 // ++ Responsive grid (to ensure keyboard size). Aspect-ratio not working, need JS solution
 // ++ LOGO (can be new game link as well, or hide new game in menu)
 // ++ BUG Tiles resizing before keyboard rerendered (on new game) causing them to occupy more space. (Actually, the right amount, which is odd)
+// Reset current game button
 // Move all styles to variables.
 // Add restyling options
 // Confetti on victory (use library https://github.com/catdad/canvas-confetti, later implement myself)

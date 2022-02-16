@@ -10,7 +10,7 @@
 <body data-gamestate>
   <header>
     <h1>Y<span>ordle</span></h1>
-    <button id="options_menu_button" class="options-menu-button" style="display: none;">☰</button>
+    <button id="options_menu_button" class="options-menu-button">☰</button>
   </header>
   <main>
     <div id="guess_list_root" class="guessList"></div>
@@ -61,6 +61,9 @@
       <div id="gloat_container" class="gloat-container"></div>
       <div id="options_container" class="options-container">
         <div class="row">
+          <h2>Settings</h2>
+        </div>
+        <!-- <div class="row">
           <p>Dark Mode</p>
           <label class="toggle">
             <input type="checkbox">
@@ -73,14 +76,15 @@
             <input type="checkbox">
             <span></span>
           </label>
-        </div>
+        </div> -->
+        <button id="reset_game" class="button button--reset reset-game-button">Reset Current Game</button>
+        <button id="reset_all" class="button button--reset reset-all-button">Reset All Data</button>    
       </div>
       <div id="stats_container" class="stats-container">
         <div class="recentWords-container">
           <h3>Recently Seen Words</h3>
           <ul id="recent_words_list_root"></ul>
         </div>
-        <button id="reset_all" class="resetAll-button">Reset All Data</button>    
       </div>
     </div>
   </div>

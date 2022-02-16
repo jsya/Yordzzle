@@ -9,7 +9,10 @@
   --secondary-color-half: #a28c2e;
   --primary-color-full: #538D4E;
   --secondary-color-full: #3e6d3a;
+  --primary-color-failure: #7c1919;
+  --secondary-color-failure: #d65808;
   --key-primary--default: #818384;
+  --button-background--failure: #b46a0f;
 }
 
 * {
@@ -175,8 +178,8 @@ main {
 }
 
 #secret_reveal_row .guessLetter {
-  background: #7c1919;
-  border: .1rem solid #d65808;
+  background: var(--primary-color-failure);
+  border: .1rem solid var(--secondary-color-failure);
 }
 
 @media screen and (min-width: 450px){
@@ -293,13 +296,13 @@ main {
 .gloat-button, .challenge-button, .newGame-button {
   display: none;
   background: var(--secondary-color-full);
-  color: white;
+  color: var(--tile-text-primary);
   padding: 10px;
   border-radius: 5px;
   margin: 5px 0;
   text-transform: uppercase;
   width: 280px;
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: .2rem;
 }
 
@@ -310,7 +313,7 @@ body[data-gamestate="success"] .challenge-button, body[data-gamestate="success"]
 
 body[data-gamestate="failure"] .challenge-button, body[data-gamestate="failure"] .newGame-button
 {
-  background: #b46a0f;
+  background: var(--button-background--failure);
 }
 
 .gloat-button {
@@ -441,16 +444,24 @@ header button:active {
 } */
 
 /* Data stuff */
-.resetAll-button {
-  background: red;
-  color: white;
+.button--reset {
+  background: var(--background-color--failure);
+  color: var(--tile-text-primary);
   padding: 1rem;
   margin: 10px;
   border-radius: .25rem;
   cursor: pointer;
 }
 
-.resetAll-button:active {
+.button--reset.reset-game-button {
+  background: var(--secondary-color-full);
+}
+
+.button--reset.reset-all-button {
+  background: var(--background-color--failure);
+}
+
+.button--reset:active {
   filter:brightness(.8);
 }
 
@@ -487,7 +498,7 @@ html[data-modal="true"] .modal-container {
   width: 100%;
   height: 100%;
   background: var(--primary-background-color);
-  color: white;
+  color: var(--tile-text-primary);
   display: flex;
   flex-direction: column;
 }
@@ -500,7 +511,7 @@ button.modal-close {
   font-size: 2.5rem;
   margin-left: auto;
   cursor: pointer;
-  color:  white;
+  color:  var(--tile-text-primary);
 }
 
 .gloat-container, .stats-container, .options-container {
@@ -521,13 +532,19 @@ button.modal-close {
 
 .options-container {
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   flex: 1;
 }
 
 .options-container .row {
   display: flex;
+}
+
+.options-container h2 {
+ margin: 10px 0;
+ font-size: 1.5rem;
+ letter-spacing: .1rem;
 }
 
 .gloat-container {
@@ -545,7 +562,7 @@ button.modal-close {
 
 .gloat-container button {
   background: var(--secondary-color-full);
-  color: white;
+  color: var(--tile-text-primary);
   padding: .5rem 1.5rem;
   border-radius: 10px;
   margin: 0 auto;
