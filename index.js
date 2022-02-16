@@ -235,13 +235,6 @@ const onResize = () => {
     // TODO: Have to make reveal row hidden instead of dynamically inserted. This is a bug until then.
     // TODO: This will have to run after the tiles are first rendered for now (since they are still dynamic)
     const tiles = Array.from(guessListRootElement.querySelectorAll('span[data-type="letter-tile"]'));
-    console.log({
-      containerHeight,
-      containerWidth,
-      maximumTileHeight,
-      maximumTileWidth,
-      maximumTileSide
-    })
     tiles.forEach(tile => {
       tile.style.width = `${maximumTileSide}px`;
       tile.style.height = `${maximumTileSide}px`;
@@ -360,13 +353,13 @@ const renderSecretReveal = (secret) => {
 }
 
 const renderRecentlySeenWordsList = () => {
-  const pastWords = getHistoricalGameData();
+  const recentWords = getHistoricalGameData()?.recentWords ?? [];
   const recentWordsListRoot = document.getElementById('recent_words_list_root');
-  if(!pastWords || !pastWords.length){
+  if(!recentWords || !recentWords.length){
     recentWordsListRoot.innerHTML = '';
     return;
   }
-  recentWordsListRoot.innerHTML = pastWords.slice(0, 10).map((word) => `<li class="recentWord">${word}</li>`).join('');
+  recentWordsListRoot.innerHTML = recentWords.map((word) => `<li class="recentWord">${word}</li>`).join('');
 }
 
 const determineIsValidGuess = (guessArr) => {
@@ -553,7 +546,8 @@ const updateHistoricalGameData = (usedWord) => {
   const updatedGameData = {};
   // Set of all seen words
   updatedGameData.usedWords = existingGameData?.usedWords ? Array.from(new Set([usedWord, ...existingGameData.usedWords ])) : [ usedWord ];
-  // TODO Reverse chronological list of most recently seen words (even duplicates)
+  // Reverse chronological list of most recently seen words (even duplicates)
+  updatedGameData.recentWords = existingGameData?.recentWords ? [ usedWord, ...existingGameData.recentWords ].slice(0, 10) : [usedWord];
   localStorage.setItem(LS_GAME_DATA_KEY, JSON.stringify(updatedGameData));
 }
 
@@ -818,7 +812,7 @@ const newGame = (challengeData) => {
   // TODO: Load saved preferences for theme
   teardownChallengeMode();
   startChallengeMode(challengeData);
-  // renderRecentlySeenWordsList();
+  renderRecentlySeenWordsList();
   refresh();
   console.debug(secret);
 }
