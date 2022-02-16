@@ -220,9 +220,6 @@ const onResize = () => {
   // Changing the CSS will break this, and it's not a great way to go, but it will hopefully suffice for MVP
   // and some time after so that I can stop being annoyed about this one particular problem. :)
   const calculateResponsiveSizes = () => {
-    // const HEADER_HEIGHT = 40;
-    // const KEYBOARD_HEIGHT = 200 + 8 + 8;
-    // const remainingHeight = document.documentElement.clientHeight - HEADER_HEIGHT - KEYBOARD_HEIGHT - (TILE_MARGIN * 6);
     const TILE_MARGIN = 2;
     const containerHeight = guessListRootElement.clientHeight;
     const containerWidth = document.documentElement.clientWidth;
@@ -243,7 +240,6 @@ const onResize = () => {
   }
 
   calculateResponsiveSizes();
-
 }
 
 const updateKeyboardState = () => {
@@ -904,8 +900,9 @@ onLoad();
 // ++ BUG being able to submt empty guesses
 // ++ BUG not triggering isfinished on sixth guess
 // ++ New game button on game end.
+// ++ BUG Modal contents should hide for other modals
+// ++ Responsive grid (to ensure keyboard size). Aspect-ratio not working, need JS solution
 // Confetti on victory (use library https://github.com/catdad/canvas-confetti, later implement myself)
-// Responsive grid (to ensure keyboard size). Aspect-ratio not working, need JS solution
 // Options menu:
 // -- Dark Mode (autodetect?)
 // -- Swap keyboard layout

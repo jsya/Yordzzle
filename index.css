@@ -502,7 +502,7 @@ button.modal-close {
   color:  white;
 }
 
-.gloat-container, .stats-container {
+.gloat-container, .stats-container, .options-container {
   display: none;
 }
 
@@ -512,6 +512,10 @@ button.modal-close {
 
 .modal-container[data-type="stats"] .stats-container {
   display: block;
+}
+
+.modal-container[data-type="options"] .options-container {
+  display: flex;
 }
 
 .options-container {
