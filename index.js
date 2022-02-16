@@ -233,9 +233,17 @@ const onResize = () => {
     // TODO: Have to make reveal row hidden instead of dynamically inserted. This is a bug until then.
     // TODO: This will have to run after the tiles are first rendered for now (since they are still dynamic)
     const tiles = Array.from(guessListRootElement.querySelectorAll('span[data-type="letter-tile"]'));
+    console.log({
+      containerHeight,
+      containerWidth,
+      maximumTileHeight,
+      maximumTileWidth,
+      maximumTileSide
+    })
     tiles.forEach(tile => {
       tile.style.width = `${maximumTileSide}px`;
       tile.style.height = `${maximumTileSide}px`;
+      tile.style.fontSize = `${maximumTileSide}px`;
     })
   }
 
@@ -574,24 +582,25 @@ const teardownChallengeMode = () => {
 
 //TODO: Definitely getting unDRY here. But want to implement before cleaning up.
 // TODO: Maybe allow for either \n or <br/>
-const generateGraphicFromScoreString = scoreString => {
-  const colors = ['⬛','🟨','🟩'];
-  const transformedArray = scoreString.split('').map(str => colors[parseInt(str)]);
-  let chunkedArray = [];
-  for(let i = 0; i < transformedArray.length; i+= 5){
-    chunkedArray = [ ...chunkedArray, ...transformedArray.slice(i, i + 5), '<br/>']
-  }
-  return chunkedArray.join("");
-}
-const generateGraphicFromScoreArray = scoreArray => {
-  const colors = ['⬛','🟨','🟩'];
-  const transformedArray = scoreArray.map(score => colors[score]);
-  let chunkedArray = [];
-  for(let i = 0; i < transformedArray.length; i+= 5){
-    chunkedArray = [ ...chunkedArray, ...transformedArray.slice(i, i + 5), '<br/>']
-  }
-  return chunkedArray.join("");
-}
+// const generateGraphicFromScoreString = scoreString => {
+//   const colors = ['⬛','🟨','🟩'];
+//   const transformedArray = scoreString.split('').map(str => colors[parseInt(str)]);
+//   let chunkedArray = [];
+//   for(let i = 0; i < transformedArray.length; i+= 5){
+//     chunkedArray = [ ...chunkedArray, ...transformedArray.slice(i, i + 5), '<br/>']
+//   }
+//   return chunkedArray.join("");
+// }
+
+// const generateGraphicFromScoreArray = scoreArray => {
+//   const colors = ['⬛','🟨','🟩'];
+//   const transformedArray = scoreArray.map(score => colors[score]);
+//   let chunkedArray = [];
+//   for(let i = 0; i < transformedArray.length; i+= 5){
+//     chunkedArray = [ ...chunkedArray, ...transformedArray.slice(i, i + 5), '<br/>']
+//   }
+//   return chunkedArray.join("");
+// }
 
 const generateGraphicalScore = (guesses) => {
   const colors = ['⬛','🟨','🟩'];
@@ -736,8 +745,8 @@ const openChallengeResultsScreen = () => {
     return;
   }
   // TODO: Reuse challenge button for gloating when in challengeMode
-  document.documentElement.dataset.modal = true;
   modal.dataset.type = "gloat";
+  document.documentElement.dataset.modal = true;
   renderChallengeResultsScreen();
 }
 
@@ -765,12 +774,13 @@ const newGame = (challengeData) => {
   renderGuessListRows();
   // NOTE: If I made guestlistrows static and only hide/show dynamically, then we could run the resize listener
   // immediately.
-  onResize();
-
+  
   document.body.dataset.gamestate = undefined;
   challengeButton.style.display = 'none';
   newGameButton.style.display = 'none';
   keyboardRoot.style.display = 'flex';
+  // NOTE: Needs to check guesslist container size after keyboard is restored.
+  onResize();
   // challengeButton.disabled = true;
   isFinished = false;
   const isRestoring = restoreGameState(challengeData);
@@ -804,8 +814,8 @@ const onLoad = () => {
     newGame();
   })
   optionsMenuButton.addEventListener('click', () => {
-    document.documentElement.dataset.modal = true;
     modal.dataset.type = "options";
+    document.documentElement.dataset.modal = true;
   });
   resetButton.addEventListener('click', () => localStorage.clear());
   challengeButton.addEventListener('click', () => {
@@ -902,6 +912,10 @@ onLoad();
 // ++ New game button on game end.
 // ++ BUG Modal contents should hide for other modals
 // ++ Responsive grid (to ensure keyboard size). Aspect-ratio not working, need JS solution
+// ++ LOGO (can be new game link as well, or hide new game in menu)
+// ++ BUG Tiles resizing before keyboard rerendered (on new game) causing them to occupy more space. (Actually, the right amount, which is odd)
+// Move all styles to variables.
+// Add restyling options
 // Confetti on victory (use library https://github.com/catdad/canvas-confetti, later implement myself)
 // Options menu:
 // -- Dark Mode (autodetect?)
@@ -913,7 +927,6 @@ onLoad();
 // -- Hard mode
 // -- Doordle mode (two words at once)
 // Stats for streak, wins, losses
-// LOGO (can be new game link as well, or hide new game in menu)
 // MAYBE Prevent duplicate guesses?
 // implement hard mode (implement modes in general (big refactor coming))
 // Finish sharing logic (ugh)
@@ -925,8 +938,6 @@ onLoad();
 // Switch success state colors from background to buttons
 // Allow setting name for sharing
 // Add butter bar for validation error messages
-// Move all styles to variables.
-// Add restyling options
 // Store style preferences in local storage
 // Create statistics
 // - Favorite first word
@@ -940,3 +951,5 @@ onLoad();
 // Link to original
 
 // lovejoy
+
+// Today: Dark theme, share image, theme to local storage, game modes.
