@@ -766,6 +766,8 @@ const generateNewSecret = () => {
 const newGame = (challengeData) => {
   // TODO: Move all visual gamestate clearing into function?
   renderGuessListRows();
+  // NOTE: If I made guestlistrows static and only hide/show dynamically, then we could run the resize listener
+  // immediately.
   onResize();
 
   document.body.dataset.gamestate = undefined;
