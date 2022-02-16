@@ -529,6 +529,13 @@ const refresh = () => {
   // renderKeyboard();
 }
 
+/**
+ * 
+ * @returns {
+ *   recentWords: Array<String> (max-length = 10)
+ *   usedWords: Array<String>
+ * }
+ */
 const getHistoricalGameData = () => {
   const localStorageValue = localStorage.getItem(LS_GAME_DATA_KEY);
   if(!localStorageValue){
@@ -537,13 +544,16 @@ const getHistoricalGameData = () => {
   // TODO: Should it just be an array of used words? Is there anything else worth persisting between games
   // for creating the next game state?
   // For now, no.
-  const usedWords = JSON.parse(localStorageValue);
-  return usedWords;
+  const existingGameData = JSON.parse(localStorageValue);
+  return existingGameData;
 }
 
 const updateHistoricalGameData = (usedWord) => {
-  const existingWordList = getHistoricalGameData();
-  const updatedGameData = existingWordList ? Array.from(new Set([usedWord, ...existingWordList ])) : [ usedWord ];
+  const existingGameData = getHistoricalGameData() ?? {};
+  const updatedGameData = {};
+  // Set of all seen words
+  updatedGameData.usedWords = existingGameData?.usedWords ? Array.from(new Set([usedWord, ...existingGameData.usedWords ])) : [ usedWord ];
+  // TODO Reverse chronological list of most recently seen words (even duplicates)
   localStorage.setItem(LS_GAME_DATA_KEY, JSON.stringify(updatedGameData));
 }
 
@@ -723,10 +733,10 @@ const renderChallengeResultsScreen = () => {
   const innerHTML = `
     <h1>${ 
       result === 'success'
-        ? 'I Win!'
+        ? 'I Won!'
         : result === 'draw'
-          ? 'We Tied'
-          : 'I Lose!'
+          ? 'I Tied...'
+          : 'I Lost!'
      }</h1>
     <div class="gloat-result-container ${ result }">
       <h2>${ challengeData.name || 'Challenger' } <span class="gloat-result-trophy">${ result === 'failure' ? `🏆` : ''}</span></h2>
@@ -761,7 +771,7 @@ const openChallengeResultsScreen = () => {
 const generateNewSecret = () => {
   let secret;
   const allPossibleWords = new Set(SECRET_WORD_LIST);
-  const usedWords = getHistoricalGameData() || [];
+  const usedWords = getHistoricalGameData()?.usedWords || [];
   // If there are still remaining words to choose from, Filter out used words and choose.
   if(usedWords.length < allPossibleWords.size){
     usedWords.forEach(word => allPossibleWords.delete(word));
@@ -771,6 +781,9 @@ const generateNewSecret = () => {
   // Otherwise, reset the used words in localStorage 
   // TODO: keep a separate list of the last ten so that that feature doesn't go away? 
   else {
+    // TODO: only clear used words
+    // Need to have a way to pass a key the read/update functions
+    // (NOTE: Could also just store each key separately of course and all this refactoring is moot)
     localStorage.removeItem(LS_GAME_DATA_KEY);
     secret = SECRET_WORD_LIST[Math.floor(Math.random() * SECRET_WORD_LIST.length)];
   }
@@ -835,6 +848,7 @@ const onLoad = () => {
   modalCloseButton.addEventListener('click', () => {
     document.documentElement.dataset.modal = false;
   })
+
   // We read for a possible seed here instead of in new game.
   // Saves us having to update the querystring to remove the seed later without
   // getting stuck playing the same word.
@@ -925,8 +939,9 @@ onLoad();
 // ++ BUG Tiles resizing before keyboard rerendered (on new game) causing them to occupy more space. (Actually, the right amount, which is odd)
 // ++ Reset current game button
 // ++ Move all styles to variables.
-// Add stats menu
-// Move statistics into modal
+// ++ Add stats menu
+// ++ Move statistics into modal
+// Track last 10 seen words for stats screen
 // Don't allow long press text highlighting (make everything unselectable)
 // Add restyling options
 // Confetti on victory (use library https://github.com/catdad/canvas-confetti, later implement myself)
