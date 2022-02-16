@@ -9,7 +9,8 @@
 </head>
 <body data-gamestate>
   <header>
-    
+    <h1>Y<span>ordle</span></h1>
+    <button id="options_menu_button" class="options-menu-button">☰</button>
   </header>
   <main>
     <div id="guess_list_root" class="guessList"></div>
@@ -22,6 +23,22 @@
     <div class="modal-inner-container">
       <button id="modal_close_button" class="modal-close">x</button>
       <div id="gloat_container" class="gloat-container"></div>
+      <div id="options_container" class="options-container">
+        <div class="row">
+          <p>Dark Mode</p>
+          <label class="toggle">
+            <input type="checkbox">
+            <span></span>
+          </label>
+        </div>
+        <div class="row">
+          <p>Swap Enter/Backspace</p>
+          <label class="toggle">
+            <input type="checkbox">
+            <span></span>
+          </label>
+        </div>
+      </div>
       <div id="stats_container" class="stats-container">
         <div class="recentWords-container">
           <h3>Recently Seen Words</h3>

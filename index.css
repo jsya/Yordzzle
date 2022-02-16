@@ -83,6 +83,8 @@ html {
 }
 
 body {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
   height: -webkit-fill-available;
@@ -114,6 +116,7 @@ background-image: url("data:image/svg+xml,%3Csvg width='180' height='180' viewBo
 }
 
 main {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -386,14 +389,32 @@ body[data-gamestate="failure"] .challenge-button, body[data-gamestate="failure"]
 
 /* Header */
 header {
+  position: relative;
   display: flex;
   width: 100%;
-  justify-content: space-around;
+  justify-content: center;
   align-items: center;
-  height: 45px;
 }
 
-header button {
+header h1 {
+  color: var(--tile-text-primary);
+  text-transform: uppercase;
+  letter-spacing: .2rem;
+}
+
+header h1 span {
+  font-size: .7em;
+}
+
+header .options-menu-button {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  color: var(--tile-text-primary);
+  font-size: 1.5rem;
+}
+
+/* header button {
   background: var(--secondary-color-full);
   color: white;
   height: 35px;
@@ -413,7 +434,7 @@ header button:disabled {
 
 header button:active {
   filter:brightness(.8);
-}
+} */
 
 /* Data stuff */
 .resetAll-button {
@@ -488,6 +509,17 @@ button.modal-close {
 
 .modal-container[data-type="stats"] .stats-container {
   display: block;
+}
+
+.options-container {
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+}
+
+.options-container .row {
+  display: flex;
 }
 
 .gloat-container {

@@ -13,6 +13,7 @@ const QUERYSTRING_CHALLENGE_KEY = 'challenge';
 
 const keyboardRoot = document.getElementById('keyboard');
 const guessListRootElement = document.getElementById("guess_list_root");
+const optionsMenuButton = document.getElementById("options_menu_button");
 const newGameButton = document.getElementById("new_game_button");
 const challengeButton = document.getElementById("challenge_button");
 const resetButton = document.getElementById('reset_all');
@@ -768,6 +769,10 @@ const onLoad = ()=> {
     clearGameStateBackup();
     newGame();
   })
+  optionsMenuButton.addEventListener('click', () => {
+    document.documentElement.dataset.modal = true;
+    modal.dataset.type = "options";
+  });
   resetButton.addEventListener('click', () => localStorage.clear());
   challengeButton.addEventListener('click', () => {
     if(isFinished){
@@ -861,7 +866,13 @@ onLoad();
 // ++ BUG being able to submt empty guesses
 // ++ BUG not triggering isfinished on sixth guess
 // ++ New game button on game end.
+// Confetti on victory (use library, later implement myself)
 // Responsive grid (to ensure keyboard size). Aspect-ratio not working, need JS solution
+// Reset game option
+// Modes
+// -- Hard mode
+// -- Doordle mode (two words at once)
+// Stats for streak, wins, losses
 // LOGO (can be new game link as well, or hide new game in menu)
 // MAYBE Prevent duplicate guesses?
 // implement hard mode (implement modes in general (big refactor coming))
