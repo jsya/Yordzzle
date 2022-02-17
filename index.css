@@ -420,6 +420,7 @@ header h1 {
   color: var(--tile-text-primary);
   text-transform: uppercase;
   letter-spacing: .2rem;
+  font-size: 2rem;
 }
 
 header h1 span {
@@ -558,9 +559,20 @@ button.modal-close {
 }
 
 .modal-container h2 {
- margin: 10px auto;
- font-size: 1.5rem;
- letter-spacing: .1rem;
+ margin: 0 auto;
+ font-size: 2rem;
+ letter-spacing: .2rem;
+ text-transform: uppercase;
+}
+
+.modal-container h2 span {
+  font-size: .7em;
+}
+
+.modal-container h3 {
+  width: 100%;
+  border-bottom: 1px solid grey;
+  margin-bottom: 5px;
 }
 
 .options-container, .stats-container {
@@ -629,6 +641,10 @@ button.modal-close {
 .start-word.low {
   background: #7c19195d;
   box-shadow: inset 0 0 20px #7c1919;
+}
+
+.default-mode {
+  width: 100%;
 }
 
 .gloat-container {
