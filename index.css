@@ -596,7 +596,6 @@ button.modal-close {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  flex: 1;
 }
 
 .gloat-container h1 {
@@ -626,11 +625,11 @@ button.modal-close {
   display: flex;
   justify-content: space-around;
   width: 100%;
+  margin: 40px 0;
 }
 
 .gloat-result-container h2 {
-  text-align: center;
-  margin: 5px 0;
+  margin: 0;
   width: 150px;
 }
 
