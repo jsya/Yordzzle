@@ -40,6 +40,7 @@ let isFinished = false;
 let hasWon = false;
 let challengeData;
 let inputDisabled = false;
+let debugMode = false;
 
 // To be used for capturing multiple vectors of user input and for submitting new guesses.
 let currentInput = [];
@@ -860,7 +861,11 @@ const onLoad = () => {
   const challengeData = challenge && processRawChallengerData(challenge); // Empty strings throw in json.parse
   // Decided to remove querystring after all. Gets rid of confusing discrepency in behavior
   // between refresh and new game button.
-  // history.pushState(null, "", window.location.href.split("?")[0]);
+  const isDebugMode = searchParams.get('debug');
+  debugMode = isDebugMode && isDebugMode === 'true';
+  if(!debugMode){
+    history.pushState(null, "", window.location.href.split("?")[0]);
+  }
   newGame(challengeData);
 }
 
@@ -946,6 +951,7 @@ onLoad();
 // ++ Move statistics into modal
 // ++ Track last 10 seen words for stats screen
 // ++ Don't allow long press text highlighting (make everything unselectable)
+// Debug mode
 // BUG Ios pull to refresh triggering resize event that causes y axis overflow
 // BUG slight reflow of guess tiles on game over. (Fix by making button area exact same size as keyboard area?)
 // Create a migrate script to allow migrating stored data via url (meh, maybe...)
