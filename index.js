@@ -208,6 +208,10 @@ const restoreGameState = (challengeData) => {
   return !!backupGameStateString;
 }
 
+const generateResultsImage = () => {
+  // TODO: Recreate results screen 
+}
+
 /**
  * RENDERING
  */
@@ -241,7 +245,7 @@ const onResize = () => {
     tiles.forEach(tile => {
       tile.style.width = `${maximumTileSide}px`;
       tile.style.height = `${maximumTileSide}px`;
-      tile.style.fontSize = `${maximumTileSide}px`;
+      tile.style.fontSize = `${Math.round(maximumTileSide * .8) }px`;
     })
   }
 
@@ -753,7 +757,7 @@ const renderChallengeResultsScreen = () => {
   `
   gloatContainer.innerHTML = innerHTML;
   // Hide share button until it's working
-  gloatContainer.querySelector('#gloat-share-button').style.disply = 'none';
+  gloatContainer.querySelector('#gloat-share-button').style.display = 'none';
 }
 
 const openChallengeResultsScreen = () => {
@@ -940,8 +944,11 @@ onLoad();
 // ++ Add stats menu
 // ++ Move statistics into modal
 // ++ Track last 10 seen words for stats screen
+// ++ Don't allow long press text highlighting (make everything unselectable)
+// BUG Ios pull to refresh triggering resize event that causes y axis overflow
+// BUG slight reflow of guess tiles on game over. (Fix by making button area exact same size as keyboard area?)
+// Create a migrate script to allow migrating stored data via url (meh, maybe...)
 // Save to homepage to remove bottom address bar.
-// Don't allow long press text highlighting (make everything unselectable)
 // Add restyling options
 // Confetti on victory (use library https://github.com/catdad/canvas-confetti, later implement myself)
 // Options menu:
@@ -979,3 +986,36 @@ onLoad();
 // lovejoy
 
 // Today: Dark theme, share image, theme to local storage, game modes.
+
+/**
+ * BRAINSTORM STATS COLLECTING
+ * 
+ * Standard Mode:
+ * - Wins
+ *   - Game Length
+ * - Losses
+ * - Longest Streak
+ * 
+ * Hard Mode:
+ * - Wins
+ *  - Game Length
+ * - Losses
+ * - Longest Streak
+ * 
+ * Dual Mode:
+ * - Wins
+ *  - Game Length
+ * - Losses
+ * - Longest Streak
+ *  
+ * Challenges:
+ * (No way to know if you won or lost a sent challenge as far as stats go)
+ * (Streaks seems a bit meaningless here)
+ * - Wins
+ * - Losses
+ * - Ties
+ * 
+ * How to track favorite words / starting word success rates... between game modes?
+ */
+
+// BANK OF AMERICA CARD
