@@ -526,10 +526,8 @@ const newGameButtonListener = () => {
   newGame();
 }
 
-// TODO: Make static html as well
 const refresh = () => {
   updateKeyboardState();
-  // renderKeyboard();
 }
 
 /**
@@ -581,6 +579,57 @@ const updateHistoricalRawUserData = (gameData) => {
     timestamp: Date.now()
   });
   localStorage.setItem(LS_RAW_USER_DATA_KEY, JSON.stringify(existingRawUserData));
+}
+
+// NOTE: For now, we'll contain everything to do with processing and rendering user data here.
+// Break out later.
+const processUserData = () => {
+  const userData = readHistoricalRawUserData();
+  if(!userData){
+    return;
+  }
+  // This will definitely be helped by using types. But also, will need a refactor for game modes.
+  // Normally, I'd say it would make sense to collect everything in duplicative ways instead of postprocessing
+  // (ie, string and array for words), but right now, localstorage is 5mb limit. Trying to pretend space is
+  // at a premium.
+  // CURRENT USER DATA SHAPE
+  // [
+  //   {
+  //     gameData: [
+  //       {
+  //         charArray: [ 'w', 'o', 'r', 'd'],
+  //         scoreArray: [ 1, 1, 0, 1],
+  //         isCorrect: false
+  //       }
+  //     ],
+  //     secret: 'word',
+  //     timestamp: 23234234,
+  //     won: false,
+  //   }
+  // ]
+
+  // 1. Get most used start words (and win ratio?)
+  const startWords = {}
+  userData.forEach(game => {
+    const startWord = game.gameData[0].charArray.join('');
+    if(startWords[startWord]){
+      startWords[startWord].push(game.won)
+    }
+    else {
+      startWords[startWord] = [game.won]
+    }
+  })
+  const sortedStartWords = (Object.entries(startWords)).sort((a, b) => b[1].length - a[1].length);
+  const topTenStartWords = sortedStartWords.slice(0, 10);
+  const startWordsStats = topTenStartWords.map(([word, resultsArr]) => ({
+    word,
+    count: resultsArr.length,
+    winPercentage: Math.round((resultsArr.filter(Boolean).length / resultsArr.length) * 100),
+  }))
+  const startWordStatRoot = document.getElementById('stat_start_word');
+  startWordStatRoot.innerHTML = '<thead><tr><th>Word</th><th>Count</th><th>Win %</th></tr></thead><tbody>' + startWordsStats.map(({ word, count, winPercentage }) => `
+    <tr><td>${word}</td><td>${count}</td><td>${winPercentage}%</td></tr>
+  `).join('') + '</tbody>';
 }
 
 const startChallengeMode = (data) => {
@@ -867,6 +916,7 @@ const onLoad = () => {
     history.pushState(null, "", window.location.href.split("?")[0]);
   }
   newGame(challengeData);
+  processUserData();
 }
 
 const gameOver = () => {
@@ -951,7 +1001,8 @@ onLoad();
 // ++ Move statistics into modal
 // ++ Track last 10 seen words for stats screen
 // ++ Don't allow long press text highlighting (make everything unselectable)
-// Debug mode
+// ++ Add Debug mode
+// Use web worker to do processing on historical data for analysis (MVP don't)
 // BUG Ios pull to refresh triggering resize event that causes y axis overflow
 // BUG slight reflow of guess tiles on game over. (Fix by making button area exact same size as keyboard area?)
 // Create a migrate script to allow migrating stored data via url (meh, maybe...)

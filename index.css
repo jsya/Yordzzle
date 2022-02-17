@@ -592,6 +592,20 @@ button.modal-close {
   margin-right: 10px;
 }
 
+.start-words {
+  width: 100%;
+}
+
+.start-words table {
+  width: 100%;
+  margin: 0 10px;
+}
+
+.start-words table th {
+  text-align: left;
+  text-transform: uppercase;
+}
+
 .gloat-container {
   flex-direction: column;
   justify-content: space-between;
