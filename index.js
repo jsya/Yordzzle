@@ -30,6 +30,7 @@ const gloatContainer = document.getElementById('gloat_container');
  *  isCorrect: false
  * }
  */
+let gameMode = 'default'; // TODO: hard, double
 let guesses;
 let usedLetters;
 let exactMatches;
@@ -969,9 +970,8 @@ onLoad();
 // Remove code for recent words (track separately from liist of used words (to support duplicates))
 // MAYBE Use a UUID for identifiers to help with name collisions (two people named John) if trying to institute a
 //   barebones challenge history (local storage only)
-// Switch success state colors from background to buttons
+// Refactor to TS.
 // Allow setting name for sharing
-// Add butter bar for validation error messages
 // Store style preferences in local storage
 // Create statistics
 // - Favorite first word
@@ -982,6 +982,7 @@ onLoad();
 // Improve victory and defeat animations
 // add pwa support for iphone
 // Link to original
+// STYLE Make guess tiles a bit transparent?
 
 // lovejoy
 

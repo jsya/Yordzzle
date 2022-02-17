@@ -332,7 +332,6 @@ body[data-gamestate="failure"] .challenge-button, body[data-gamestate="failure"]
 .game-controls {
   max-width: 100%;
   height: 200px;
-
 }
 
 .keyboard {
@@ -590,7 +589,7 @@ button.modal-close {
 .recent-words li {
   text-transform: uppercase;
   list-style: none;
-  width: 15%;
+  margin-right: 10px;
 }
 
 .gloat-container {
