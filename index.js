@@ -628,7 +628,7 @@ const processUserData = () => {
   }))
   const startWordStatRoot = document.getElementById('stat_start_word');
   startWordStatRoot.innerHTML = '<thead><tr><th>Word</th><th>Count</th><th>Win %</th></tr></thead><tbody>' + startWordsStats.map(({ word, count, winPercentage }) => `
-    <tr><td>${word}</td><td>${count}</td><td>${winPercentage}%</td></tr>
+    <tr class="start-word ${ winPercentage > 69 ? 'high' : winPercentage > 39 ? 'medium' : 'low' }"><td>${word}</td><td>${count}</td><td>${winPercentage}%</td></tr>
   `).join('') + '</tbody>';
 }
 
@@ -872,6 +872,7 @@ const newGame = (challengeData) => {
   teardownChallengeMode();
   startChallengeMode(challengeData);
   renderRecentlySeenWordsList();
+  processUserData();
   refresh();
   console.debug(secret);
 }
@@ -916,7 +917,7 @@ const onLoad = () => {
     history.pushState(null, "", window.location.href.split("?")[0]);
   }
   newGame(challengeData);
-  processUserData();
+
 }
 
 const gameOver = () => {
@@ -1007,6 +1008,8 @@ onLoad();
 // BUG slight reflow of guess tiles on game over. (Fix by making button area exact same size as keyboard area?)
 // Create a migrate script to allow migrating stored data via url (meh, maybe...)
 // Save to homepage to remove bottom address bar.
+// Validate letter entry visually for hints as to suitability?
+// Pull in other appropriate words
 // Add restyling options
 // Confetti on victory (use library https://github.com/catdad/canvas-confetti, later implement myself)
 // Options menu:
