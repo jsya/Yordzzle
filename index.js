@@ -5,6 +5,8 @@ const VERSION = 0.1;
 //   ['↵', 'z','x','c','v','b','n','m', '←'],
 // ];
 
+const GAME_MODES = ['standard', 'hard', 'double'];
+
 const SS_GAME_STATE_BACKUP_KEY = 'SS_GAME_STATE_BACKUP';
 const LS_GAME_DATA_KEY = 'LS_GAME_DATA';
 const LS_RAW_USER_DATA_KEY = 'LS_RAW_USER_DATA';
@@ -30,7 +32,7 @@ const gloatContainer = document.getElementById('gloat_container');
  *  isCorrect: false
  * }
  */
-let gameMode = 'default'; // TODO: hard, double
+let gameMode = 'standard';
 let guesses;
 let usedLetters;
 let exactMatches;
@@ -610,7 +612,17 @@ const processUserData = () => {
 
   // 1. Get most used start words (and win ratio?)
   const startWords = {}
+  const standardGameResults = {
+    totalPlayed: userData.length,
+    wins: [0, 0, 0, 0, 0, 0],
+    losses: 0,
+    longestStreak: 0,
+    currentStreak: 0,
+    winPercentage: 0,
+  };
+  let streakCount = 0; // For calculating longest streak.
   userData.forEach(game => {
+    // 1. Start Word Stats
     const startWord = game.gameData[0].charArray.join('');
     if(startWords[startWord]){
       startWords[startWord].push(game.won)
@@ -618,7 +630,30 @@ const processUserData = () => {
     else {
       startWords[startWord] = [game.won]
     }
+
+    // 2. Game results stats
+    if(!game.won){
+      standardGameResults.losses++;
+      standardGameResults.longestStreak = Math.max(standardGameResults.longestStreak, streakCount);
+      streakCount = 0;
+    }
+    else {
+      standardGameResults.wins[game.gameData.length - 1]++;
+      streakCount++;
+    }
   })
+  standardGameResults.winPercentage = Math.floor(((standardGameResults.totalPlayed - standardGameResults.losses) / standardGameResults.totalPlayed) * 100);
+
+  for(let i = userData.length - 1; i > 0; i--){
+    if(userData[i].won){
+      standardGameResults.currentStreak++
+    }
+    else {
+      break;
+    }
+  }
+
+  console.log(standardGameResults)
   const sortedStartWords = (Object.entries(startWords)).sort((a, b) => b[1].length - a[1].length);
   const topTenStartWords = sortedStartWords.slice(0, 10);
   const startWordsStats = topTenStartWords.map(([word, resultsArr]) => ({
@@ -630,6 +665,27 @@ const processUserData = () => {
   startWordStatRoot.innerHTML = '<thead><tr><th>Word</th><th>Count</th><th>Win %</th></tr></thead><tbody>' + startWordsStats.map(({ word, count, winPercentage }) => `
     <tr class="start-word ${ winPercentage > 69 ? 'high' : winPercentage > 39 ? 'medium' : 'low' }"><td>${word}</td><td>${count}</td><td>${winPercentage}%</td></tr>
   `).join('') + '</tbody>';
+  const standardModeStatsContainer = document.getElementById('standard_mode_stats_container');
+  standardModeStatsContainer.innerHTML = `
+    <div class="row standard-overview">
+      <div class="stat-item">
+        <div class="stat-label">Games Played</div>
+        <div class="stat-data">${standardGameResults.totalPlayed}</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Win %</div>
+        <div class="stat-data">${standardGameResults.winPercentage}</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Longest Streak</div>
+        <div class="stat-data">${standardGameResults.longestStreak}</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Current Streak</div>
+        <div class="stat-data">${standardGameResults.currentStreak}</div>
+      </div>
+    </div>
+  `
 }
 
 const startChallengeMode = (data) => {
@@ -1003,6 +1059,7 @@ onLoad();
 // ++ Track last 10 seen words for stats screen
 // ++ Don't allow long press text highlighting (make everything unselectable)
 // ++ Add Debug mode
+// Add warning before allowing delete all data
 // Use web worker to do processing on historical data for analysis (MVP don't)
 // BUG Ios pull to refresh triggering resize event that causes y axis overflow
 // BUG slight reflow of guess tiles on game over. (Fix by making button area exact same size as keyboard area?)
@@ -1021,7 +1078,7 @@ onLoad();
 // Modes
 // -- Hard mode
 // -- Doordle mode (two words at once)
-// Stats for streak, wins, losses
+// ++ Stats for streak, wins, losses
 // MAYBE Prevent duplicate guesses?
 // implement hard mode (implement modes in general (big refactor coming))
 // Finish sharing logic (ugh)
@@ -1034,7 +1091,7 @@ onLoad();
 // Allow setting name for sharing
 // Store style preferences in local storage
 // Create statistics
-// - Favorite first word
+// ++ - Favorite first word
 // - Favorite words
 // - Graph of previous wins
 // - Track scoring of each word to see what are most successful words and how often used

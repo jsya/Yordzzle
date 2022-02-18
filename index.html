@@ -72,6 +72,14 @@
         <div class="row">
           <h2>S<span>ettings</span></h2>
         </div>
+        <div class="row">
+          <label for="game_mode">Game Mode</label>
+          <select name="gameMode" id="game_mode">
+            <option value="standard">Standard</option>
+            <option value="hard">Hard</option>
+            <option value="double">Double</option>
+          </select>
+        </div>
         <!-- <div class="row">
           <p>Dark Mode</p>
           <label class="toggle">
@@ -94,9 +102,9 @@
           <h2>H<span>istory</span></h2>
         </div>
         <div class="row">
-          <div class="recent-words">
-            <h3>Recent Solutions</h3>
-            <ul id="recent_words_list_root"></ul>
+          <div class="standard-mode">
+            <h3>Standard Mode Overview</h3>
+            <div id="standard_mode_stats_container">🚧 Under Construction 🚧</div>
           </div>
         </div>
         <div class="row">
@@ -106,9 +114,9 @@
           </div>
         </div>
         <div class="row">
-          <div class="default-mode">
-            <h3>Standard Mode Stats</h3>
-            <div id="default_mode_stats_container">🚧 Under Construction 🚧</div>
+          <div class="recent-words">
+            <h3>Recent Solutions</h3>
+            <ul id="recent_words_list_root"></ul>
           </div>
         </div>
       </div>

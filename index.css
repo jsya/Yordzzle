@@ -643,8 +643,32 @@ button.modal-close {
   box-shadow: inset 0 0 20px #7c1919;
 }
 
-.default-mode {
+.standard-mode {
   width: 100%;
+}
+
+.standard-overview .stat-item {
+  flex: 1 0;
+  display: flex;
+  flex-flow: column;
+}
+
+.standard-overview .stat-item:nth-of-type(even) {
+  background: var(--primary-color-none);
+}
+
+.standard-overview .stat-label {
+  flex: 1 0;
+}
+
+.standard-overview .stat-data {
+  border-top: 1px dashed grey;
+  font-size: 1.5rem;
+}
+
+.standard-overview .stat-label, .standard-overview .stat-data {
+  text-align: center;
+  padding: 5px 0;
 }
 
 .gloat-container {
