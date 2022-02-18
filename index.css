@@ -544,6 +544,7 @@ button.modal-close {
 
 .modal-container[data-type="stats"] .stats-container {
   display: flex;
+  overflow-y: scroll;
 }
 
 .modal-container[data-type="options"] .options-container {
@@ -605,20 +606,20 @@ button.modal-close {
   margin-right: 10px;
 }
 
-.start-words {
+.start-words, .favorite-words {
   width: 100%;
 }
 
-.start-words table {
+.stats-container table {
   margin: 0 10px;
   border-collapse: collapse;
 }
 
-.start-words table thead {
+.stats-container table thead {
   background: var(--primary-color-none);
 }
 
-.start-words table th {
+.stats-container table th {
   text-align: left;
 }
 
@@ -641,6 +642,16 @@ button.modal-close {
 .start-word.low {
   background: #7c19195d;
   box-shadow: inset 0 0 20px #7c1919;
+}
+
+.favorite-words table th, .favorite-words table td {
+  width: 45vw;
+  padding: 3px;
+  text-align: center;
+  text-transform: uppercase;
+}
+.favorite-words table tbody tr:nth-of-type(even) {
+  background: #242424;
 }
 
 .standard-mode {

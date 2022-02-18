@@ -611,7 +611,8 @@ const processUserData = () => {
   // ]
 
   // 1. Get most used start words (and win ratio?)
-  const startWords = {}
+  const startWords = {};
+  const usedWords = {};
   const standardGameResults = {
     totalPlayed: userData.length,
     wins: [0, 0, 0, 0, 0, 0],
@@ -631,7 +632,20 @@ const processUserData = () => {
       startWords[startWord] = [game.won]
     }
 
-    // 2. Game results stats
+    // 2. All used words stats
+    game.gameData.forEach(({ charArray }) => {
+      const word = charArray.join('');
+      // Otherwise there's an empty string from corrupt data (Hopefully gone after a purge, but I need the extra data now for testing and am feeling too lazy to generate dummy data (TODO?))
+      if(!word) return;
+      if(usedWords[word]){
+        usedWords[word]++
+      }
+      else {
+        usedWords[word] = 1
+      }
+    })
+
+    // 3. Game results stats
     if(!game.won){
       standardGameResults.losses++;
       standardGameResults.longestStreak = Math.max(standardGameResults.longestStreak, streakCount);
@@ -654,17 +668,7 @@ const processUserData = () => {
   }
 
   console.log(standardGameResults)
-  const sortedStartWords = (Object.entries(startWords)).sort((a, b) => b[1].length - a[1].length);
-  const topTenStartWords = sortedStartWords.slice(0, 10);
-  const startWordsStats = topTenStartWords.map(([word, resultsArr]) => ({
-    word,
-    count: resultsArr.length,
-    winPercentage: Math.round((resultsArr.filter(Boolean).length / resultsArr.length) * 100),
-  }))
-  const startWordStatRoot = document.getElementById('stat_start_word');
-  startWordStatRoot.innerHTML = '<thead><tr><th>Word</th><th>Count</th><th>Win %</th></tr></thead><tbody>' + startWordsStats.map(({ word, count, winPercentage }) => `
-    <tr class="start-word ${ winPercentage > 69 ? 'high' : winPercentage > 39 ? 'medium' : 'low' }"><td>${word}</td><td>${count}</td><td>${winPercentage}%</td></tr>
-  `).join('') + '</tbody>';
+
   const standardModeStatsContainer = document.getElementById('standard_mode_stats_container');
   standardModeStatsContainer.innerHTML = `
     <div class="row standard-overview">
@@ -685,7 +689,23 @@ const processUserData = () => {
         <div class="stat-data">${standardGameResults.currentStreak}</div>
       </div>
     </div>
-  `
+  `;
+  const sortedStartWords = (Object.entries(startWords)).sort((a, b) => b[1].length - a[1].length);
+  const topTenStartWords = sortedStartWords.slice(0, 10);
+  const startWordsStats = topTenStartWords.map(([word, resultsArr]) => ({
+    word,
+    count: resultsArr.length,
+    winPercentage: Math.round((resultsArr.filter(Boolean).length / resultsArr.length) * 100),
+  }));
+  const startWordStatRoot = document.getElementById('stat_start_word');
+  startWordStatRoot.innerHTML = '<thead><tr><th>Word</th><th>Count</th><th>Win %</th></tr></thead><tbody>' + startWordsStats.map(({ word, count, winPercentage }) => `
+    <tr class="start-word ${ winPercentage > 69 ? 'high' : winPercentage > 39 ? 'medium' : 'low' }"><td>${word}</td><td>${count}</td><td>${winPercentage}%</td></tr>
+  `).join('') + '</tbody>';
+  const sortedUsedWords = (Object.entries(usedWords)).sort((a,b) => b[1] - a[1]);
+  const favoriteWords = sortedUsedWords.slice(0, 20);
+  console.log(favoriteWords)
+  const favoriteWordsStatRoot = document.getElementById('stat_favorite_word');
+  favoriteWordsStatRoot.innerHTML = '<thead><tr><th>Word</th><th>Count</th></tr></thead><tbody>' + favoriteWords.map(([word, count]) => `<tr class="favorite-word"><td>${ word }</td><td>${ count }</td></tr>`).join('') + '</tbody>';
 }
 
 const startChallengeMode = (data) => {
